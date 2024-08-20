@@ -44,6 +44,7 @@ int start(int pid)
         kill(pids.second_pid, SIGUSR1);
         printf("Ennemy connected !\n");
     }
+    run(pids);
     return 0;
 }
 

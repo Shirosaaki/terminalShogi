@@ -5,8 +5,9 @@
 ## make
 ##
 
-SRC	=	main.cpp	\
-		my_getnbr.cpp
+SRC	=	main.cpp		\
+		my_getnbr.cpp	\
+		game.cpp
 
 OBJ	=	$(SRC:.cpp=.o)
 
