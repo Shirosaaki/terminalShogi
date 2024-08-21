@@ -6,8 +6,9 @@
 ##
 
 SRC	=	main.cpp		\
-		my_getnbr.cpp	\
-		game.cpp
+		my_getnbr.cpp		\
+		game.cpp		\
+		send.cpp
 
 OBJ	=	$(SRC:.cpp=.o)
 

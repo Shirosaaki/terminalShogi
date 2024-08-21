@@ -30,3 +30,15 @@ int my_isnum(char const *str)
              (str[i] >= '0' && str[i] <= '9'); i++);
     return i == strlen(str) ? 1 : 0;
 }
+
+int *char_to_bin(char c)
+{
+    int *bin = (int *)malloc(sizeof(int) * 4);
+    int b = c - '0';
+
+    for (int i = 3; i >= 0; i--) {
+        bin[i] = b % 2;
+        b /= 2;
+    }
+    return bin;
+}

@@ -24,5 +24,7 @@ typedef struct pids_s {
 int my_isnum(char const *str);
 int my_getnbr(char const *str);
 int run(pids_t pids);
+int *char_to_bin(char c);
+void send(int *bin, int pid);
 
 #endif /* !MY_H_ */
