@@ -38,7 +38,8 @@ int start(int pid)
         printf("Succesfully connected !\n");
     } else {
         pids.first_pid = getpid();
-        printf("my_pid: %d\nWaiting for ennemy connection...\n", pids.first_pid);
+        printf("my_pid: %d\nWaiting for ennemy connection...\n",
+            pids.first_pid);
         pause();
         pids.second_pid = sign;
         kill(pids.second_pid, SIGUSR1);
@@ -46,6 +47,50 @@ int start(int pid)
     }
     run(pids);
     return 0;
+}
+
+Piece *init_player(short color, int direction)
+{
+    Piece *player = (Piece *)malloc(sizeof(Piece) * 20);
+
+    int moves_arr[20][37] = {
+        {0, direction, -50},                                             // Pion
+        {0, direction, -50}, {0, direction, -50}, {0, direction, -50},
+        {0, direction, -50}, {0, direction, -50}, {0, direction, -50},
+        {0, direction, -50}, {0, direction, -50},
+        {0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 8, 0, 9, -50},        // Lancer
+        {2, 1, 2, -1, -50},                                              // Cavalier
+        {-1, -1, 0, -1, 1, -1, -1, 1, 1, 1, -50},                        // Archer
+        {-1, -1, 0, -1, 1, -1, -1, 0, 1, 0, 0, -1, -50},                 // Onagre
+        {-1, -1, -1, 1, -1, 0, 1, -1, 1, 0, 1, 1, 0, -1, 0, 1, -50},     // Roi
+        {0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 8, 0, 9, -50},        // Lancer
+        {2, 1, 2, -1, -50},                                              // Cavalier
+        {-1, -1, 0, -1, 1, -1, -1, 1, 1, 1, -50},                        // Archer
+        {-1, -1, 0, -1, 1, -1, -1, 0, 1, 0, 0, -1, -50},                 // Onagre
+        {-1, -1, -1, 1, 1, -1, 1, 1, -50},                               // Fou
+        {0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8, 0, 9, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8, 0, 9, 0, -50}  // Tour
+    };
+    int piece_types[20] = {'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'L', 'C', 'A', 'O', 'R', 'L', 'C', 'A', 'O', 'F', 'T'};
+    int positions[20][2] = {
+        {1, direction == 1 ? 3 : 7}, {2, direction == 1 ? 3 : 7}, {3, direction == 1 ? 3 : 7},
+        {4, direction == 1 ? 3 : 7}, {5, direction == 1 ? 3 : 7}, {6, direction == 1 ? 3 : 7},
+        {7, direction == 1 ? 3 : 7}, {8, direction == 1 ? 3 : 7}, {9, direction == 1 ? 3 : 7},
+        {1, direction == 1 ? 1 : 9}, {2, direction == 1 ? 1 : 9}, {3, direction == 1 ? 1 : 9},
+        {4, direction == 1 ? 1 : 9}, {5, direction == 1 ? 1 : 9}, {9, direction == 1 ? 1 : 9},
+        {8, direction == 1 ? 1 : 9}, {7, direction == 1 ? 1 : 9}, {6, direction == 1 ? 1 : 9},
+        {direction == 1 ? 8 : 2, direction == 1 ? 2 : 8}, {direction == 1 ? 2 : 8, direction == 1 ? 2 : 8}
+    };
+    int move_lengths[20] = {3, 3, 3, 3, 3, 3, 3, 3, 3, 19, 4, 11, 13, 17, 19, 4, 11, 13, 9, 37};
+
+    for (int i = 0; i < 20; i++) {
+        player[i].setup(piece_types[i], color, positions[i][0], positions[i][1]);
+        int *moves = (int *)malloc(move_lengths[i] * sizeof(int));
+        for (int j = 0; j < move_lengths[i]; j++) {
+            moves[j] = moves_arr[i][j] * (i == 13 ? 1 : direction);  // Only negate direction for certain pieces
+        }
+        player[i].set_move(moves);
+    }
+    return player;
 }
 
 int main(int ac, char **av)

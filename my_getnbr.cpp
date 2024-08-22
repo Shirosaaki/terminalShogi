@@ -36,9 +36,20 @@ int *char_to_bin(char c)
     int *bin = (int *)malloc(sizeof(int) * 4);
     int b = c - '0';
 
+    if (b < 1 || b > 9)
+        return NULL;
     for (int i = 3; i >= 0; i--) {
         bin[i] = b % 2;
         b /= 2;
     }
     return bin;
+}
+
+int bin_to_dec(int *bin)
+{
+    int dec = 0;
+    for (int i = 0; i < 4; ++i) {
+        dec = (dec << 1) | bin[i];
+    }
+    return dec;
 }

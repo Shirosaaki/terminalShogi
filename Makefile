@@ -15,7 +15,7 @@ OBJ	=	$(SRC:.cpp=.o)
 NAME	=	shogi
 
 all:	$(OBJ)
-	gcc -o $(NAME) $(OBJ)
+	gcc -o $(NAME) $(OBJ) -lncurses
 
 clean:
 	rm -rf $(OBJ)
