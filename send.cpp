@@ -25,20 +25,96 @@ void send(int *bin, int pid)
     free(bin);
 }
 
-int piece_ir(int x, int y, char **map)
+int piece_ir(int x, int y, Piece *ourPieces)
 {
-    if (map[x][y] == ' ')
-        return 1;
+    for (int i = 0; i < 20; i++) {
+        if (ourPieces[i].x == x && ourPieces[i].y == y)
+            return 1;
+    }
     return 0;
 }
 
-void print_attack(char **pos, char **map, size_t *len)
+void print_attack(char *pos, Piece *ourPieces)
 {
-    printf("Witch piece do you want to move (x x) : ");
-    getline(pos, len, stdin);
-    while (piece_ir((*pos)[0] - '0' - 1, (*pos)[2] - '0' - 1, map) != 0) {
-        printf("NO piece IR\n");
-        printf("Witch piece do you want to move (x x) : ");
-        getline(pos, len, stdin);
+    mvprintw(20, 0, "Witch piece do you want to move (x x) : ");
+    getstr(pos);
+    while (piece_ir(pos[0] - 48, pos[2] - 48, ourPieces) == 0) {
+        printw("NO piece IR\n");
+        printw("Witch piece do you want to move (x x) : ");
+        getstr(pos);
+    }
+}
+
+int no_piece_between(int x1, int y1, int x2, int y2, Piece *ourPieces, Piece *en)
+{
+    int x = x1;
+    int y = y1;
+
+    if (x1 == x2) {
+        if (y1 < y2)
+            y++;
+        else
+            y--;
+    } else {
+        if (x1 < x2)
+            x++;
+        else
+            x--;
+    }
+    while (x != x2 || y != y2) {
+        if (piece_ir(x, y, ourPieces) == 1 || piece_ir(x, y, en) == 1)
+            return 0;
+        if (x1 == x2) {
+            if (y1 < y2)
+                y++;
+            else
+                y--;
+        } else {
+            if (x1 < x2)
+                x++;
+            else
+                x--;
+        }
+    }
+    return 1;
+}
+
+int move_ir(int x1, int y1, int x2, int y2, Piece *ourPieces, Piece *en)
+{
+    for (int i = 0; i < 20; i++) {
+        if (ourPieces[i].x == x1 && ourPieces[i].y == y1) {
+            if (ourPieces[i].can_move(x2, y2) == 1
+            && piece_ir(x2, y2, ourPieces) == 0) {
+                if (no_piece_between(x1, y1, x2, y2, ourPieces, en) == 0)
+                    return 0;
+                ourPieces[i].x = x2;
+                ourPieces[i].y = y2;
+                if (piece_ir(x2, y2, en) == 1) {
+                    for (int j = 0; j < 20; j++) {
+                        if (en[j].x == x2 && en[j].y == y2) {
+                            en[j].x = 50;
+                            en[j].y = 50;
+                            break;
+                        }
+                    }
+                }
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+void print_dep(char *pos, Piece *ourPieces, Piece *ennemyPieces)
+{
+    int p1 = pos[0] - 48;
+    int p2 = pos[2] - 48;
+
+    printw("Where do you want to move (x x) : ");
+    getstr(pos);
+    while (move_ir(p1, p2, pos[0] - 48, pos[2] - 48, ourPieces, ennemyPieces) == 0) {
+        printw("NO move IR\n");
+        printw("Where do you want to move (x x) : ");
+        getstr(pos);
     }
 }

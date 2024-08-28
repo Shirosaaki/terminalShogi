@@ -46,22 +46,23 @@ void print_map(Piece *ourPieces, Piece *ennemyPieces)
     }
 }
 
-int attack(int me, int who_play, pids_t pids, Piece *ourPieces, Piece *ennemyPieces)
+void attack(int me, int who_play, pids_t pids, Piece *ourPieces, Piece *ennemyPieces)
 {
     int who_not_play = pids.first_pid == who_play ? pids.second_pid : pids.first_pid;
-    char *pos;
-    size_t len = 0;
-    int *result = (int *)malloc(sizeof(int) * 8);
-    int *bin;
-    char p;
     int *pos_int = (int *)malloc(sizeof(int) * 2);
+    int *result = (int *)malloc(sizeof(int) * 8);
+    char *pos = (char *)malloc(sizeof(char) * 4);
+    int *bin;
 
     print_map(ourPieces, ennemyPieces);
     refresh();
-    free(result);
-    return 1;
-    /*if (me == who_play) {
-        print_attack(&pos, map, &len);
+    if (me == who_play) {
+        print_attack(pos, ourPieces);
+        bin = char_to_bin(pos[0]);
+        send(bin, who_not_play);
+        bin = char_to_bin(pos[2]);
+        send(bin, who_not_play);
+        print_dep(pos, ourPieces, ennemyPieces);
         bin = char_to_bin(pos[0]);
         send(bin, who_not_play);
         bin = char_to_bin(pos[2]);
@@ -70,17 +71,36 @@ int attack(int me, int who_play, pids_t pids, Piece *ourPieces, Piece *ennemyPie
         for (int i = 0; i < 8; i++) {
             pause();
             result[i] = sign;
-            printf("%d ", result[i]);
             kill(who_play, SIGUSR2);
             if (i == 3)
                 kill(who_play, SIGUSR1);
         }
-        printf("\n");
         pos_int[0] = bin_to_dec(result) - 1;
         pos_int[1] = bin_to_dec(result + 4) - 1;
-        p = map[pos_int[0]][pos_int[1]];
-        printf("Piece: %c\n", p);
-    }*/
+        for (int i = 0; i < 8; i++) {
+            pause();
+            result[i] = sign;
+            kill(who_play, SIGUSR2);
+            if (i == 3)
+                kill(who_play, SIGUSR1);
+        }
+        pos_int[2] = bin_to_dec(result) - 1;
+        pos_int[3] = bin_to_dec(result + 4) - 1;
+        dprintf(2, "pos[2] = %d\n", pos_int[2] + 1);
+        dprintf(2, "pos[3] = %d\n", pos_int[3] + 1);
+        for (int i = 0; i < 20; i++) {
+            if (ennemyPieces[i].x == pos_int[0] + 1 && ennemyPieces[i].y == pos_int[1] + 1) {
+                ennemyPieces[i].x = pos_int[2] + 1;
+                ennemyPieces[i].y = pos_int[3] + 1;
+                if (piece_ir(pos_int[2] + 1, pos_int[3] + 1, ourPieces) == 1) {
+                    ourPieces[i].x = 50;
+                    ourPieces[i].y = 50;
+                }
+                break;
+            }
+        }
+    }
+    free(result);
 }
 
 
@@ -108,15 +128,13 @@ int run(pids_t pids)
     start_color();
     init_pair(1, COLOR_CYAN, COLOR_BLACK);
     init_pair(2, COLOR_YELLOW, COLOR_BLACK);
-    noecho();
-    curs_set(0);
     refresh();
     do {
         clear();
         attack(me, who_play, pids, ourPieces, ennemyPieces);
         refresh();
         who_play = pids.first_pid == who_play ? pids.second_pid : pids.first_pid;
-    } while (getch() != 27 && win == 0);
+    } while (win == 0);
     endwin();
     return win;
 }

@@ -24,13 +24,13 @@ typedef struct pids_s {
 
 
 class Piece {
-    char piece;
     int color;
     int *moves;
 
     public:
         int x;
         int y;
+        char piece;
         void setup(char pi, int col, int x_t, int y_t) {
             piece = pi;
             color = col;
@@ -53,72 +53,15 @@ class Piece {
         };
 };
 
-
-class Pieces {
-    public:
-        int piece;
-        int can_move;
-        int x_move;
-        int y_move;
-
-        void get_piece(char pi) {
-            switch (pi)
-            {
-            case 'P':
-                piece = 1;
-            case 'T':
-                piece = 2;
-            case 'F':
-                piece = 3;
-            case 'C':
-                piece = 4;
-            case 'O':
-                piece = 5;
-            case 'A':
-                piece = 6;
-            case 'L':
-                piece = 7;
-            default:
-                piece = 8;
-            }
-        }
-        /*void move(int x, int y, int mx, int my, char **map) {
-            switch (piece)
-            {
-            case 1:
-                move_p(x, y, mx, my, map);
-            case 2:
-                move_t(x, y, mx, my, map);
-            case 3:
-                move_f(x, y, mx, my, map);
-            case 4:
-                move_c(x, y, mx, my, map);
-            case 5:
-                move_o(x, y, mx, my, map);
-            case 6:
-                move_a(x, y, mx, my, map);
-            case 7:
-                move_l(x, y, mx, my, map);
-            default:
-                move_r(x, y, mx, my, map);
-            }
-        }
-
-        void move_p(int x, int y, int mx, int my, char **map) {
-            if (my == y + 1 && mx == x && ) {
-
-            }
-        }*/
-};
-
 int my_isnum(char const *str);
 int my_getnbr(char const *str);
 int run(pids_t pids);
 int *char_to_bin(char c);
 void send(int *bin, int pid);
 int bin_to_dec(int *bin);
-int piece_ir(int x, int y, char **map);
-void print_attack(char **pos, char **map, size_t *len);
+int piece_ir(int x, int y, Piece *ourPieces);
+void print_attack(char *pos, Piece *ourPieces);
+void print_dep(char *pos, Piece *ourPieces, Piece *ennemyPieces);
 Piece *init_player(int color, int direction);
 
 #endif /* !MY_H_ */

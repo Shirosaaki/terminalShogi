@@ -86,7 +86,7 @@ Piece *init_player(int color, int direction)
         player[i].setup(piece_types[i], color, positions[i][0], positions[i][1]);
         int *moves = (int *)malloc(move_lengths[i] * sizeof(int));
         for (int j = 0; j < move_lengths[i]; j++) {
-            moves[j] = moves_arr[i][j] * (i == 13 ? 1 : direction);  // Only negate direction for certain pieces
+            moves[j] = moves_arr[i][j];  // Only negate direction for certain pieces
         }
         player[i].set_move(moves);
     }
