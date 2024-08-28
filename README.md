@@ -3,6 +3,21 @@
 
 The goal of this project is to create a Shogi game playable between two terminals.
 
+## WARNING
+
+This project is in development,
+
+### TODO
+
+* Move on the map
+* Airdrop of parts
+* WIN / LOOSE
+
+### IMPROVEMENT
+
+* Make the code more readable
+* Add move of pieces (Tower / Bishop)
+
 ## Requirements
 * gcc / g++
 * make
