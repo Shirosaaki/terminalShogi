@@ -16,40 +16,33 @@ void handler_sig(int sig, siginfo_t *si, void *unused)
         sign = 1;
 }
 
-char **create_map(void)
+void print_map(Piece *ourPieces, Piece *ennemyPieces)
 {
-    char** map = (char**)malloc(9 * sizeof(char*));
-    const char* rows[] = {
-        "LCAOROACL",
-        " T     F ",
-        "PPPPPPPPP",
-        "         ",
-        "         ",
-        "         ",
-        "PPPPPPPPP",
-        " F     T ",
-        "LCAOROACL"
-    };
-
-    for (int i = 0; i < 9; ++i) {
-        map[i] = (char*)malloc(10 * sizeof(char));
-        strcpy(map[i], rows[i]);
-    }
-    return map;
-}
-
-void print_map(char **map)
-{
-    printf("\n------------------");
-    printf("-------------------\n");
-    for (int i = 0; i < 9; i++) {
-        for (int j = 0; j < 9; j++) {
-            printf("| %c ", map[i][j]);
-            if (j == 8)
-                printf("|");
+    printw("\n-------------------------------------\n");
+    for (int i = 1; i < 10; i++) {
+        printw("|");
+        for (int j = 0; j < 10; j++) {
+            bool printed = false;
+            for (int k = 0; k < 20; k++) {
+                if (ourPieces[k].x == j && ourPieces[k].y == i) {
+                    ourPieces[k].print();
+                    printed = true;
+                    break;
+                } else if (ennemyPieces[k].x == j && ennemyPieces[k].y == i) {
+                    ennemyPieces[k].print();
+                    printed = true;
+                    break;
+                }
+            }
+            if (!printed && j != 0)
+                printw(" ");
+            if (j != 9 && j != 0)
+                printw(" | ");
+            else
+                printw(" ");
         }
-        printf("\n------------------");
-        printf("-------------------\n");
+        printw("|\n");
+        printw("-------------------------------------\n");
     }
 }
 
@@ -62,11 +55,8 @@ int attack(int me, int who_play, pids_t pids, Piece *ourPieces, Piece *ennemyPie
     int *bin;
     char p;
     int *pos_int = (int *)malloc(sizeof(int) * 2);
-    
-    for (int i = 0; i < 20; i++) {
-        ourPieces[i].print();
-        //ennemyPieces[i].print();
-    }
+
+    print_map(ourPieces, ennemyPieces);
     refresh();
     free(result);
     return 1;
@@ -97,7 +87,6 @@ int attack(int me, int who_play, pids_t pids, Piece *ourPieces, Piece *ennemyPie
 int run(pids_t pids)
 {
     int win = 0;
-    char **map = create_map();
     int me = getpid();
     int who_play = pids.first_pid;
     struct sigaction sa;
@@ -105,28 +94,29 @@ int run(pids_t pids)
     Piece *ennemyPieces;
 
     if (me == who_play) {
-        ourPieces = init_player(COLOR_CYAN, 1);
-        ennemyPieces = init_player(COLOR_YELLOW, -1);
+        ourPieces = init_player(1, 1);
+        ennemyPieces = init_player(2, -1);
     } else {
-        ourPieces = init_player(COLOR_YELLOW, -1);
-        ennemyPieces = init_player(COLOR_CYAN, 1);
+        ourPieces = init_player(2, -1);
+        ennemyPieces = init_player(1, 1);
     }
     sa.sa_flags = SA_SIGINFO;
     sa.sa_sigaction = handler_sig;
     sigaction(SIGUSR1, &sa, NULL);
     sigaction(SIGUSR2, &sa, NULL);
-    print_map(map);
     initscr();
     start_color();
+    init_pair(1, COLOR_CYAN, COLOR_BLACK);
+    init_pair(2, COLOR_YELLOW, COLOR_BLACK);
     noecho();
     curs_set(0);
     refresh();
-    while (getch() != 27) {
+    do {
         clear();
         attack(me, who_play, pids, ourPieces, ennemyPieces);
         refresh();
         who_play = pids.first_pid == who_play ? pids.second_pid : pids.first_pid;
-    }
+    } while (getch() != 27 && win == 0);
     endwin();
     return win;
 }

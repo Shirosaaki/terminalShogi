@@ -25,13 +25,13 @@ typedef struct pids_s {
 
 class Piece {
     char piece;
-    short color;
+    int color;
     int *moves;
-    int x;
-    int y;
 
     public:
-        void setup(char pi, short col, int x_t, int y_t) {
+        int x;
+        int y;
+        void setup(char pi, int col, int x_t, int y_t) {
             piece = pi;
             color = col;
             x = x_t;
@@ -46,11 +46,11 @@ class Piece {
                     return 1;
             return 0;
         };
-        void print() {
-            init_pair(1, color, COLOR_BLACK);
-            attron(COLOR_PAIR(1));
-            mvprintw(y, x, "%c", piece);
-        }
+        void print(void) {
+            attron(COLOR_PAIR(color));
+            printw("%c", piece);
+            attroff(COLOR_PAIR(color));
+        };
 };
 
 
@@ -119,6 +119,6 @@ void send(int *bin, int pid);
 int bin_to_dec(int *bin);
 int piece_ir(int x, int y, char **map);
 void print_attack(char **pos, char **map, size_t *len);
-Piece *init_player(short color, int direction);
+Piece *init_player(int color, int direction);
 
 #endif /* !MY_H_ */

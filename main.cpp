@@ -49,7 +49,7 @@ int start(int pid)
     return 0;
 }
 
-Piece *init_player(short color, int direction)
+Piece *init_player(int color, int direction)
 {
     Piece *player = (Piece *)malloc(sizeof(Piece) * 20);
 
