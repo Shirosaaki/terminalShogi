@@ -53,7 +53,7 @@ Piece *init_player(int color, int direction)
 {
     Piece *player = (Piece *)malloc(sizeof(Piece) * 20);
 
-    int moves_arr[20][37] = {
+    int moves_arr[20][74] = {
         {0, direction, -50},                                             // Pion
         {0, direction, -50}, {0, direction, -50}, {0, direction, -50},
         {0, direction, -50}, {0, direction, -50}, {0, direction, -50},
@@ -67,8 +67,10 @@ Piece *init_player(int color, int direction)
         {1, 2*direction, -1, 2*direction, -50},                                              // Cavalier
         {-1, -1, 0, -1, 1, -1, -1, 1, 1, 1, -50},                        // Archer
         {-1, -1, 0, -1, 1, -1, -1, 0, 1, 0, 0, -1, -50},                 // Onagre
-        {-1, -1, -1, 1, 1, -1, 1, 1, -50},                               // Fou
-        {0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8, 0, 9, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8, 0, 9, 0, -50}  // Tour
+        {-1, -1, -2, -2, -3, -3, -4, -4, -5, -5, -6, -6, -7, -7, -8, -8, -9, -9, -1, 1, -2, 2, -3, 3, -4, 4, -5, 5, -6, 6, -7, 7, -8, 8, -9, 9,
+            1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 7, -7, 8, -8, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, -50},                               // Fou
+        {0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8, 0, 9, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8, 0, 9, 0,
+            0, -1, 0, -2, 0, -3, 0, -4, 0, -5, 0, -6, 0, -7, 0, -8, 0, -9, -1, 0, -2, 0, -3, 0, -4, 0, -5, 0, -6, 0, -7, 0, -8, 0, -9, 0, -50}  // Tour
     };
     int piece_types[20] = {'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'L', 'C', 'A', 'O', 'R', 'L', 'C', 'A', 'O', 'F', 'T'};
     int positions[20][2] = {
@@ -80,7 +82,7 @@ Piece *init_player(int color, int direction)
         {8, direction == 1 ? 1 : 9}, {7, direction == 1 ? 1 : 9}, {6, direction == 1 ? 1 : 9},
         {direction == 1 ? 8 : 2, direction == 1 ? 2 : 8}, {direction == 1 ? 2 : 8, direction == 1 ? 2 : 8}
     };
-    int move_lengths[20] = {3, 3, 3, 3, 3, 3, 3, 3, 3, 19, 4, 11, 13, 17, 19, 4, 11, 13, 9, 37};
+    int move_lengths[20] = {3, 3, 3, 3, 3, 3, 3, 3, 3, 19, 4, 11, 13, 17, 19, 4, 11, 13, 73, 73};
 
     for (int i = 0; i < 20; i++) {
         player[i].setup(piece_types[i], color, positions[i][0], positions[i][1]);
