@@ -59,12 +59,12 @@ Piece *init_player(int color, int direction)
         {0, direction, -50}, {0, direction, -50}, {0, direction, -50},
         {0, direction, -50}, {0, direction, -50},
         {0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 8, 0, 9, -50},        // Lancer
-        {2, 1, 2, -1, -50},                                              // Cavalier
+        {1, 2*direction, -1, 2*direction, -50},                                              // Cavalier
         {-1, -1, 0, -1, 1, -1, -1, 1, 1, 1, -50},                        // Archer
         {-1, -1, 0, -1, 1, -1, -1, 0, 1, 0, 0, -1, -50},                 // Onagre
         {-1, -1, -1, 1, -1, 0, 1, -1, 1, 0, 1, 1, 0, -1, 0, 1, -50},     // Roi
         {0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 8, 0, 9, -50},        // Lancer
-        {2, 1, 2, -1, -50},                                              // Cavalier
+        {1, 2*direction, -1, 2*direction, -50},                                              // Cavalier
         {-1, -1, 0, -1, 1, -1, -1, 1, 1, 1, -50},                        // Archer
         {-1, -1, 0, -1, 1, -1, -1, 0, 1, 0, 0, -1, -50},                 // Onagre
         {-1, -1, -1, 1, 1, -1, 1, 1, -50},                               // Fou

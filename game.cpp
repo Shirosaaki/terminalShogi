@@ -86,8 +86,6 @@ void attack(int me, int who_play, pids_t pids, Piece *ourPieces, Piece *ennemyPi
         }
         pos_int[2] = bin_to_dec(result) - 1;
         pos_int[3] = bin_to_dec(result + 4) - 1;
-        dprintf(2, "pos[2] = %d\n", pos_int[2] + 1);
-        dprintf(2, "pos[3] = %d\n", pos_int[3] + 1);
         for (int i = 0; i < 20; i++) {
             if (ennemyPieces[i].x == pos_int[0] + 1 && ennemyPieces[i].y == pos_int[1] + 1) {
                 ennemyPieces[i].x = pos_int[2] + 1;

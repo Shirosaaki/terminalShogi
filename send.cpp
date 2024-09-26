@@ -50,31 +50,24 @@ int no_piece_between(int x1, int y1, int x2, int y2, Piece *ourPieces, Piece *en
     int x = x1;
     int y = y1;
 
-    if (x1 == x2) {
-        if (y1 < y2)
-            y++;
-        else
-            y--;
-    } else {
-        if (x1 < x2)
-            x++;
-        else
-            x--;
+    for (int i = 0; i < 20; i++) {
+        if (ourPieces[i].x == x1 && ourPieces[i].y == y1) {
+            if (ourPieces[i].piece == 'C')
+                return 1;
+        }
     }
+
+    int dx = (x2 > x1) ? 1 : (x2 < x1) ? -1 : 0;
+    int dy = (y2 > y1) ? 1 : (y2 < y1) ? -1 : 0;
+
+    x += dx;
+    y += dy;
+
     while (x != x2 || y != y2) {
         if (piece_ir(x, y, ourPieces) == 1 || piece_ir(x, y, en) == 1)
             return 0;
-        if (x1 == x2) {
-            if (y1 < y2)
-                y++;
-            else
-                y--;
-        } else {
-            if (x1 < x2)
-                x++;
-            else
-                x--;
-        }
+        x += dx;
+        y += dy;
     }
     return 1;
 }
@@ -92,8 +85,8 @@ int move_ir(int x1, int y1, int x2, int y2, Piece *ourPieces, Piece *en)
                 if (piece_ir(x2, y2, en) == 1) {
                     for (int j = 0; j < 20; j++) {
                         if (en[j].x == x2 && en[j].y == y2) {
-                            en[j].x = 50;
-                            en[j].y = 50;
+                            en[j].x = 20;
+                            en[j].y = 0;
                             break;
                         }
                     }
