@@ -36,11 +36,11 @@ int piece_ir(int x, int y, Piece *ourPieces)
 
 void print_attack(char *pos, Piece *ourPieces)
 {
-    mvprintw(20, 0, "Witch piece do you want to move (x x) : ");
+    mvprintw(20, 0, "Witch piece do you want to move (x y) : ");
     getstr(pos);
     while (piece_ir(pos[0] - 48, pos[2] - 48, ourPieces) == 0) {
         printw("NO piece IR\n");
-        printw("Witch piece do you want to move (x x) : ");
+        printw("Witch piece do you want to move (x y) : ");
         getstr(pos);
     }
 }
@@ -103,11 +103,11 @@ void print_dep(char *pos, Piece *ourPieces, Piece *ennemyPieces)
     int p1 = pos[0] - 48;
     int p2 = pos[2] - 48;
 
-    printw("Where do you want to move (x x) : ");
+    printw("Where do you want to move (x y) : ");
     getstr(pos);
     while (move_ir(p1, p2, pos[0] - 48, pos[2] - 48, ourPieces, ennemyPieces) == 0) {
         printw("NO move IR\n");
-        printw("Where do you want to move (x x) : ");
+        printw("Where do you want to move (x y) : ");
         getstr(pos);
     }
 }
