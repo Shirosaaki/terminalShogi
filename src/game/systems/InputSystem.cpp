@@ -173,8 +173,9 @@ void InputSystem::handleMyTurn(ecs::Registry& reg) {
         bool cancelled = false;
         bool chosen = false;
         while (!chosen && !cancelled) {
-            // render selection UI
-            m_renderer.drawText(0, 21, "Select captured piece (←/→ then Enter, q to cancel)");
+            // render selection UI (use ASCII and pad lines to clear leftovers)
+            std::string prompt = "Select captured piece (left/right then Enter, q to cancel)";
+            m_renderer.drawText(0, 21, prompt + std::string(60 - (int)prompt.size(), ' '));
             std::string list;
             for (size_t i = 0; i < caps.size(); ++i) {
                 if ((int)i == sel) {
@@ -187,7 +188,7 @@ void InputSystem::handleMyTurn(ecs::Registry& reg) {
                     list += "  ";
                 }
             }
-            m_renderer.drawText(0, 22, list);
+            m_renderer.drawText(0, 22, list + std::string(60 - (int)list.size(), ' '));
             m_renderer.refreshScreen();
 
             // wait for key event
@@ -209,7 +210,8 @@ void InputSystem::handleMyTurn(ecs::Registry& reg) {
         }
 
         if (cancelled) {
-            m_renderer.drawText(0, 21, "Drop cancelled.");
+            std::string msg = "Drop cancelled.";
+            m_renderer.drawText(0, 21, msg + std::string(60 - (int)msg.size(), ' '));
             m_renderer.refreshScreen();
             return;
         }
@@ -220,7 +222,8 @@ void InputSystem::handleMyTurn(ecs::Registry& reg) {
         caps.erase(caps.begin() + sel);
 
         // ask destination
-        m_renderer.drawText(0, 21, "Drop to: x y");
+        std::string destPrompt = "Drop to: x y";
+        m_renderer.drawText(0, 21, destPrompt + std::string(60 - (int)destPrompt.size(), ' '));
         m_renderer.refreshScreen();
         std::string dest = m_input.readLineBlocking();
         std::stringstream dss(dest);
