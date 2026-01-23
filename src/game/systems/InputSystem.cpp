@@ -20,6 +20,8 @@
 #include <ncurses.h>
 #include <sstream>
 #include <unistd.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include "../../../includes/core/utils/SignalHandler.hpp"
 
 InputSystem::InputSystem(core::MoveGeneratorStrategy& moveGen,
@@ -89,6 +91,9 @@ void InputSystem::update(ecs::Registry& reg, float) {
             return;
     }
 
+    // Poll UI events
+    m_input.pollEvents();
+
     // Get current player
     int currentPlayer = 0;
     for (auto e : reg.aliveEntities()) {
@@ -99,148 +104,105 @@ void InputSystem::update(ecs::Registry& reg, float) {
         }
     }
 
-    // Only allow input if it's this process's turn
-    if (currentPlayer != m_localPlayer) {
-        // Player 1 (localPlayer==0) should NOT wait for a signal on the first turn
-        static bool firstTurn = true;
-        if (firstTurn && m_localPlayer == 0) {
-            firstTurn = false;
-            // Let Player 1 play immediately
-        } else {
-            m_renderer.drawText(0, 20, "Your enemy is playing... (waiting for their move)");
-            m_renderer.refreshScreen();
-
-            // wait until a SIGUSR1 from opponent is consumed
-            while (!core::SignalHandler::consumeUserSignal()) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(50));
-            }
-
-            // apply the move published by the opponent
-            pid_t sender = core::SignalHandler::lastUserSender();
-            if (sender != 0) {
-                std::string path = "/tmp/terminalShogi_move_" + std::to_string(sender);
-                std::ifstream in(path);
-                if (in) {
-                    core::Move m;
-                    if (in >> m.fromX >> m.fromY >> m.toX >> m.toY) {
-                        applyMove(reg, m);
-
-                        // ensure turn is set to local player (the one who was waiting)
-                        for (auto e : reg.aliveEntities()) {
-                            auto t = reg.getComponent<TurnComponent>(e);
-                            if (t) {
-                                t->currentPlayer = m_localPlayer;
-                                break;
-                            }
-                        }
-                    }
-                    in.close();
-                    std::remove(path.c_str());
-                }
-            }
-
-            return;
-        }
+    if (currentPlayer == m_localPlayer) {
+        handleMyTurn(reg);
+    } else {
+        handleOpponentTurn(reg);
     }
+}
 
-    // Ask for input
-    m_renderer.drawText(0, 20, "Enter x y : ");
+void InputSystem::handleMyTurn(ecs::Registry& reg) {
+    m_renderer.drawText(0, 20, "Your turn. Enter from x y to x y: ");
     m_renderer.refreshScreen();
 
-    int x, y;
-    while (!readCoords(x, y)) {
-        m_renderer.drawText(0, 21, "Invalid input. Enter x y : ");
-        m_renderer.refreshScreen();
-    }
-
-    // Check piece
-    ecs::Entity piece = pieceAt(reg, x, y);
-    std::stringstream dbg;
-    dbg << "DEBUG: Input (" << (x+1) << "," << (y+1) << ") ";
-    if (piece == ecs::INVALID_ENTITY) {
-        dbg << "No piece found.";
-        m_renderer.drawText(0, 22, dbg.str());
+    std::string line = m_input.readLineBlocking();
+    std::stringstream ss(line);
+    int fx, fy, tx, ty;
+    if (!(ss >> fx >> fy >> tx >> ty)) {
+        m_renderer.drawText(0, 21, "Invalid input. Try again.");
         m_renderer.refreshScreen();
         return;
     }
-
-    auto pc = reg.getComponent<PieceComponent>(piece);
-    if (!pc) {
-        dbg << "Entity has no PieceComponent.";
-        m_renderer.drawText(0, 22, dbg.str());
-        m_renderer.refreshScreen();
-        return;
-    }
-    dbg << "owner=" << pc->owner << ", currentPlayer=" << currentPlayer;
-    if (pc->owner != currentPlayer) {
-        dbg << " Not your piece.";
-        m_renderer.drawText(0, 22, dbg.str());
-        m_renderer.refreshScreen();
-        return;
-    }
-    m_renderer.drawText(0, 22, dbg.str());
-    m_renderer.refreshScreen();
+    // Convert to 0-based
+    fx--; fy--; tx--; ty--;
 
     // Generate moves
     auto moves = m_moveGen.generateMoves(reg);
 
-    // Print all legal moves for this piece
-    int moveLine = 23;
-    bool found = false;
+    // Find the move
     for (const auto& m : moves) {
-        if (m.fromX == x && m.fromY == y) {
-            found = true;
-            std::stringstream msg;
-            msg << "Legal: (" << (m.fromX+1) << "," << (m.fromY+1) << ") -> (" << (m.toX+1) << "," << (m.toY+1) << ")";
-            m_renderer.drawText(0, moveLine++, msg.str());
+        if (m.fromX == fx && m.fromY == fy && m.toX == tx && m.toY == ty) {
+            // Check if piece belongs to player
+            ecs::Entity piece = pieceAt(reg, fx, fy);
+            if (piece != ecs::INVALID_ENTITY) {
+                auto pc = reg.getComponent<PieceComponent>(piece);
+                if (pc && pc->owner == m_localPlayer) {
+                    applyMove(reg, m);
+
+                    // Switch turn
+                    for (auto e : reg.aliveEntities()) {
+                        auto t = reg.getComponent<TurnComponent>(e);
+                        if (t) {
+                            t->currentPlayer = 1 - t->currentPlayer;
+                            break;
+                        }
+                    }
+
+                    // Send move
+                    if (m_opponentPid != 0) {
+                        std::string path = "/tmp/terminalShogi_move_" + std::to_string(getpid());
+                        std::ofstream out(path);
+                        out << m.fromX << " " << m.fromY << " " << m.toX << " " << m.toY << "\n";
+                        out.close();
+                        kill(m_opponentPid, SIGUSR1);
+                    }
+
+                    return;
+                }
+            }
         }
     }
-    if (!found) {
-        m_renderer.drawText(0, moveLine++, "No legal moves for this piece.");
+
+    m_renderer.drawText(0, 21, "Invalid move. Try again.");
+    m_renderer.refreshScreen();
+}
+
+void InputSystem::handleOpponentTurn(ecs::Registry& reg) {
+    static bool firstWait = true;
+    if (firstWait && m_localPlayer == 0) {
+        firstWait = false;
+        return; // Player 1 starts
     }
-    m_renderer.drawText(0, moveLine++, "Enter next x y : ");
+
+    m_renderer.drawText(0, 20, "Waiting for opponent...");
     m_renderer.refreshScreen();
 
-    int nx, ny;
-    while (!readCoords(nx, ny)) {
-        m_renderer.drawText(0, moveLine++, "Invalid input. Enter next x y : ");
-        m_renderer.refreshScreen();
+    // Wait for signal
+    while (!core::SignalHandler::consumeUserSignal()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 
-    // Validate move
-    for (auto& m : moves) {
-        if (m.fromX == x && m.fromY == y &&
-            m.toX == nx && m.toY == ny) {
+    // Receive move
+    pid_t sender = core::SignalHandler::lastUserSender();
+    if (sender != 0) {
+        std::string path = "/tmp/terminalShogi_move_" + std::to_string(sender);
+        std::ifstream in(path);
+        if (in) {
+            core::Move m;
+            if (in >> m.fromX >> m.fromY >> m.toX >> m.toY) {
+                applyMove(reg, m);
 
-            applyMove(reg, m);
-
-            // Send move to opponent
-            if (m_opponentPid != 0) {
-                std::string path = "/tmp/terminalShogi_move_" + std::to_string(getpid());
-                std::ofstream out(path);
-                if (out) {
-                    out << m.fromX << " " << m.fromY << " " << m.toX << " " << m.toY << std::endl;
-                    out.close();
+                // Switch turn to local
+                for (auto e : reg.aliveEntities()) {
+                    auto t = reg.getComponent<TurnComponent>(e);
+                    if (t) {
+                        t->currentPlayer = m_localPlayer;
+                        break;
+                    }
                 }
             }
-
-            // Switch turn
-            for (auto e : reg.aliveEntities()) {
-                auto t = reg.getComponent<TurnComponent>(e);
-                if (t) {
-                    t->currentPlayer = 1 - t->currentPlayer;
-                    break;
-                }
-            }
-
-            // Notify opponent
-            if (m_opponentPid != 0) {
-                kill(m_opponentPid, SIGUSR1);
-            }
-
-            return;
+            in.close();
+            std::remove(path.c_str());
         }
     }
-
-    m_renderer.drawText(0, moveLine++, "Illegal move. Try again.");
 }

@@ -88,7 +88,6 @@ int main(int argc, char** argv) {
     systems.push_back(std::make_unique<RenderSystem>(renderer));
     // Pass localPlayer and opponentPidValue to InputSystem
     systems.push_back(std::make_unique<InputSystem>(*moveGen, renderer, input, localPlayer, opponentPidValue));
-    systems.push_back(std::make_unique<CleanupSystem>());
 
     // -------------------------------
     // 5. Boucle principale
