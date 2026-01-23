@@ -31,17 +31,6 @@ InputSystem::InputSystem(core::MoveGeneratorStrategy& moveGen,
                          pid_t opponentPid)
     : m_moveGen(moveGen), m_renderer(renderer), m_input(input), m_localPlayer(localPlayer), m_opponentPid(opponentPid) {}
 
-bool InputSystem::readCoords(int& x, int& y) {
-    std::string line = m_input.readLineBlocking();
-    std::stringstream ss(line);
-    int ux, uy;
-    if ((ss >> ux >> uy).fail()) return false;
-    // Convert from 1-based (user) to 0-based (internal)
-    x = ux - 1;
-    y = uy - 1;
-    return (x >= 0 && y >= 0);
-}
-
 ecs::Entity InputSystem::pieceAt(ecs::Registry& reg, int x, int y) {
     for (auto e : reg.aliveEntities()) {
         auto pos = reg.getComponent<PositionComponent>(e);
@@ -112,58 +101,101 @@ void InputSystem::update(ecs::Registry& reg, float) {
 }
 
 void InputSystem::handleMyTurn(ecs::Registry& reg) {
-    m_renderer.drawText(0, 20, "Your turn. Enter from x y to x y: ");
+    m_renderer.drawText(0, 20, "Select piece: x y or 'exit'");
     m_renderer.refreshScreen();
 
     std::string line = m_input.readLineBlocking();
+    if (line == "exit") {
+        for (auto e : reg.aliveEntities()) {
+            auto gs = reg.getComponent<GameStatusComponent>(e);
+            if (gs) {
+                gs->gameOver = true;
+                break;
+            }
+        }
+        return;
+    }
+
     std::stringstream ss(line);
-    int fx, fy, tx, ty;
-    if (!(ss >> fx >> fy >> tx >> ty)) {
-        m_renderer.drawText(0, 21, "Invalid input. Try again.");
+    int fx, fy;
+    if (!(ss >> fx >> fy)) {
+        m_renderer.drawText(0, 21, "Invalid input.");
         m_renderer.refreshScreen();
         return;
     }
-    // Convert to 0-based
-    fx--; fy--; tx--; ty--;
+    fx--; fy--;
+
+    ecs::Entity piece = pieceAt(reg, fx, fy);
+    if (piece == ecs::INVALID_ENTITY) {
+        m_renderer.drawText(0, 21, "No piece there.");
+        m_renderer.refreshScreen();
+        return;
+    }
+
+    auto pc = reg.getComponent<PieceComponent>(piece);
+    if (!pc || pc->owner != m_localPlayer) {
+        m_renderer.drawText(0, 21, "Not your piece.");
+        m_renderer.refreshScreen();
+        return;
+    }
 
     // Generate moves
-    auto moves = m_moveGen.generateMoves(reg);
+    auto allMoves = m_moveGen.generateMoves(reg);
+    std::vector<core::Move> pieceMoves;
+    for (const auto& m : allMoves) {
+        if (m.fromX == fx && m.fromY == fy) {
+            pieceMoves.push_back(m);
+            // Draw '.' at to position: row = 1 + y*2, col = 2 + x*4
+            int row = 1 + m.toY * 2;
+            int col = 2 + m.toX * 4;
+            m_renderer.drawCell(col, row, '.');
+        }
+    }
+    m_renderer.refreshScreen();
 
-    // Find the move
-    for (const auto& m : moves) {
-        if (m.fromX == fx && m.fromY == fy && m.toX == tx && m.toY == ty) {
-            // Check if piece belongs to player
-            ecs::Entity piece = pieceAt(reg, fx, fy);
-            if (piece != ecs::INVALID_ENTITY) {
-                auto pc = reg.getComponent<PieceComponent>(piece);
-                if (pc && pc->owner == m_localPlayer) {
-                    applyMove(reg, m);
+    // Prompt for destination
+    m_renderer.drawText(0, 21, "Move to: x y");
+    m_renderer.refreshScreen();
 
-                    // Switch turn
-                    for (auto e : reg.aliveEntities()) {
-                        auto t = reg.getComponent<TurnComponent>(e);
-                        if (t) {
-                            t->currentPlayer = 1 - t->currentPlayer;
-                            break;
-                        }
-                    }
+    line = m_input.readLineBlocking();
+    ss.str(line);
+    ss.clear();
+    int tx, ty;
+    if (!(ss >> tx >> ty)) {
+        m_renderer.drawText(0, 22, "Invalid input.");
+        m_renderer.refreshScreen();
+        return;
+    }
+    tx--; ty--;
 
-                    // Send move
-                    if (m_opponentPid != 0) {
-                        std::string path = "/tmp/terminalShogi_move_" + std::to_string(getpid());
-                        std::ofstream out(path);
-                        out << m.fromX << " " << m.fromY << " " << m.toX << " " << m.toY << "\n";
-                        out.close();
-                        kill(m_opponentPid, SIGUSR1);
-                    }
+    // Check move
+    for (const auto& m : pieceMoves) {
+        if (m.toX == tx && m.toY == ty) {
+            applyMove(reg, m);
 
-                    return;
+            // Switch turn
+            for (auto e : reg.aliveEntities()) {
+                auto t = reg.getComponent<TurnComponent>(e);
+                if (t) {
+                    t->currentPlayer = 1 - t->currentPlayer;
+                    break;
                 }
             }
+
+            // Send move
+            if (m_opponentPid != 0) {
+                std::string path = "/tmp/terminalShogi_move_" + std::to_string(getpid());
+                std::ofstream out(path);
+                out << m.fromX << " " << m.fromY << " " << m.toX << " " << m.toY << "\n";
+                out.close();
+                kill(m_opponentPid, SIGUSR1);
+            }
+
+            return;
         }
     }
 
-    m_renderer.drawText(0, 21, "Invalid move. Try again.");
+    m_renderer.drawText(0, 22, "Invalid move.");
     m_renderer.refreshScreen();
 }
 

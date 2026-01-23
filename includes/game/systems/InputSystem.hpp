@@ -30,7 +30,6 @@ private:
     int m_localPlayer;
     pid_t m_opponentPid;
 
-    bool readCoords(int& x, int& y);
     ecs::Entity pieceAt(ecs::Registry& reg, int x, int y);
     void applyMove(ecs::Registry& reg, const core::Move& m);
     void handleMyTurn(ecs::Registry& reg);
