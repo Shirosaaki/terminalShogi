@@ -18,7 +18,8 @@ public:
     InputSystem(core::MoveGeneratorStrategy& moveGen,
                 ui::NcursesRenderer& renderer,
                 ui::InputSystem& input,
-                int localPlayer);
+                int localPlayer,
+                pid_t opponentPid);
 
     void update(ecs::Registry& registry, float dt) override;
 
@@ -27,6 +28,7 @@ private:
     ui::NcursesRenderer& m_renderer;
     ui::InputSystem& m_input;
     int m_localPlayer;
+    pid_t m_opponentPid;
 
     bool readCoords(int& x, int& y);
     ecs::Entity pieceAt(ecs::Registry& reg, int x, int y);

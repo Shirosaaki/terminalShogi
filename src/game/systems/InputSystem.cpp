@@ -13,14 +13,21 @@
 #include "../../../includes/game/components/GameStatusComponent.hpp"
 #include <thread>
 #include <chrono>
+#include <atomic>
+#include <csignal>
+#include <fstream>
+#include <cstdio>
 #include <ncurses.h>
 #include <sstream>
+#include <unistd.h>
+#include "../../../includes/core/utils/SignalHandler.hpp"
 
 InputSystem::InputSystem(core::MoveGeneratorStrategy& moveGen,
                          ui::NcursesRenderer& renderer,
                          ui::InputSystem& input,
-                         int localPlayer)
-    : m_moveGen(moveGen), m_renderer(renderer), m_input(input), m_localPlayer(localPlayer) {}
+                         int localPlayer,
+                         pid_t opponentPid)
+    : m_moveGen(moveGen), m_renderer(renderer), m_input(input), m_localPlayer(localPlayer), m_opponentPid(opponentPid) {}
 
 bool InputSystem::readCoords(int& x, int& y) {
     std::string line = m_input.readLineBlocking();
@@ -94,10 +101,46 @@ void InputSystem::update(ecs::Registry& reg, float) {
 
     // Only allow input if it's this process's turn
     if (currentPlayer != m_localPlayer) {
-        m_renderer.drawText(0, 20, "Your enemy is playing...");
-        m_renderer.refreshScreen();
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
-        return;
+        // Player 1 (localPlayer==0) should NOT wait for a signal on the first turn
+        static bool firstTurn = true;
+        if (firstTurn && m_localPlayer == 0) {
+            firstTurn = false;
+            // Let Player 1 play immediately
+        } else {
+            m_renderer.drawText(0, 20, "Your enemy is playing... (waiting for their move)");
+            m_renderer.refreshScreen();
+
+            // wait until a SIGUSR1 from opponent is consumed
+            while (!core::SignalHandler::consumeUserSignal()) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            }
+
+            // apply the move published by the opponent
+            pid_t sender = core::SignalHandler::lastUserSender();
+            if (sender != 0) {
+                std::string path = "/tmp/terminalShogi_move_" + std::to_string(sender);
+                std::ifstream in(path);
+                if (in) {
+                    core::Move m;
+                    if (in >> m.fromX >> m.fromY >> m.toX >> m.toY) {
+                        applyMove(reg, m);
+
+                        // ensure turn is set to local player (the one who was waiting)
+                        for (auto e : reg.aliveEntities()) {
+                            auto t = reg.getComponent<TurnComponent>(e);
+                            if (t) {
+                                t->currentPlayer = m_localPlayer;
+                                break;
+                            }
+                        }
+                    }
+                    in.close();
+                    std::remove(path.c_str());
+                }
+            }
+
+            return;
+        }
     }
 
     // Ask for input
@@ -171,6 +214,16 @@ void InputSystem::update(ecs::Registry& reg, float) {
 
             applyMove(reg, m);
 
+            // Send move to opponent
+            if (m_opponentPid != 0) {
+                std::string path = "/tmp/terminalShogi_move_" + std::to_string(getpid());
+                std::ofstream out(path);
+                if (out) {
+                    out << m.fromX << " " << m.fromY << " " << m.toX << " " << m.toY << std::endl;
+                    out.close();
+                }
+            }
+
             // Switch turn
             for (auto e : reg.aliveEntities()) {
                 auto t = reg.getComponent<TurnComponent>(e);
@@ -178,6 +231,11 @@ void InputSystem::update(ecs::Registry& reg, float) {
                     t->currentPlayer = 1 - t->currentPlayer;
                     break;
                 }
+            }
+
+            // Notify opponent
+            if (m_opponentPid != 0) {
+                kill(m_opponentPid, SIGUSR1);
             }
 
             return;

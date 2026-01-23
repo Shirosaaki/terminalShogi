@@ -16,6 +16,7 @@
 int main(int argc, char** argv) {
     pid_t myPid = getpid();
     std::optional<pid_t> opponentPid;
+    pid_t opponentPidValue = 0;
     int localPlayer = 0; // 0 = player 1, 1 = player 2
 
     bool secondPlayerConnected = false;
@@ -33,15 +34,18 @@ int main(int argc, char** argv) {
         std::cout << "PID: " << myPid << "\n";
         std::cout << "Launch: ./terminalShogi " << myPid << "\n";
         localPlayer = 0;
+        opponentPidValue = 0; // Will be set by player 2
 
         while (!secondPlayerConnected) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
-
-        std::cout << "Second player connected!\n";
+        // retrieve the opponent PID from the signal info
+        opponentPidValue = core::SignalHandler::lastUserSender();
+        std::cout << "Second player connected! PID=" << opponentPidValue << "\n";
     }
     else if (argc == 2) {
         opponentPid = std::stoi(argv[1]);
+        opponentPidValue = *opponentPid;
         std::cout << "You are Player 2 (top, plays second)." << std::endl;
         std::cout << "Connecting to player 1 (PID " << *opponentPid << ")\n";
 
@@ -82,8 +86,8 @@ int main(int argc, char** argv) {
     // Injection manuelle des systèmes dépendants de l’UI
     // Render first so the board is visible before blocking input
     systems.push_back(std::make_unique<RenderSystem>(renderer));
-    // Pass localPlayer to InputSystem
-    systems.push_back(std::make_unique<InputSystem>(*moveGen, renderer, input, localPlayer));
+    // Pass localPlayer and opponentPidValue to InputSystem
+    systems.push_back(std::make_unique<InputSystem>(*moveGen, renderer, input, localPlayer, opponentPidValue));
     systems.push_back(std::make_unique<CleanupSystem>());
 
     // -------------------------------
