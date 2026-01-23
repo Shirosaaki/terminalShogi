@@ -151,6 +151,121 @@ void InputSystem::handleMyTurn(ecs::Registry& reg) {
         return;
     }
 
+    // Drop mode: user can type 'd' or 'drop' to drop a captured piece
+    if (line == "d" || line == "drop") {
+        auto& caps = m_captured[m_localPlayer];
+        if (caps.empty()) {
+            m_renderer.drawText(0, 21, "No captured pieces to drop.");
+            m_renderer.refreshScreen();
+            return;
+        }
+
+        int sel = 0;
+        bool cancelled = false;
+        bool chosen = false;
+        while (!chosen && !cancelled) {
+            // render selection UI
+            m_renderer.drawText(0, 21, "Select captured piece (←/→ then Enter, q to cancel)");
+            std::string list;
+            for (size_t i = 0; i < caps.size(); ++i) {
+                if ((int)i == sel) {
+                    list += "[";
+                    list += caps[i];
+                    list += "] ";
+                } else {
+                    list += " ";
+                    list += caps[i];
+                    list += "  ";
+                }
+            }
+            m_renderer.drawText(0, 22, list);
+            m_renderer.refreshScreen();
+
+            // wait for key event
+            bool got = false;
+            while (!got) {
+                m_input.pollEvents();
+                if (m_input.hasEvent()) {
+                    auto ev = m_input.nextEvent();
+                    if (auto kev = std::get_if<ui::KeyEvent>(&ev)) {
+                        int k = kev->key;
+                        if (k == KEY_LEFT) { sel = (sel - 1 + (int)caps.size()) % (int)caps.size(); got = true; }
+                        else if (k == KEY_RIGHT) { sel = (sel + 1) % (int)caps.size(); got = true; }
+                        else if (k == 10 || k == KEY_ENTER || k == 13) { chosen = true; got = true; }
+                        else if (k == 'q') { cancelled = true; got = true; }
+                    }
+                }
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            }
+        }
+
+        if (cancelled) {
+            m_renderer.drawText(0, 21, "Drop cancelled.");
+            m_renderer.refreshScreen();
+            return;
+        }
+
+        // chosen piece symbol
+        char chosenSymbol = caps[sel];
+        // remove from captured
+        caps.erase(caps.begin() + sel);
+
+        // ask destination
+        m_renderer.drawText(0, 21, "Drop to: x y");
+        m_renderer.refreshScreen();
+        std::string dest = m_input.readLineBlocking();
+        std::stringstream dss(dest);
+        int tx, ty;
+        if (!(dss >> tx >> ty)) {
+            m_renderer.drawText(0, 22, "Invalid coords.");
+            m_renderer.refreshScreen();
+            return;
+        }
+        tx--; ty--;
+
+        // check target empty
+        if (pieceAt(reg, tx, ty) != ecs::INVALID_ENTITY) {
+            m_renderer.drawText(0, 22, "Target not empty.");
+            m_renderer.refreshScreen();
+            return;
+        }
+
+        // create new piece entity
+        auto e = reg.createEntity();
+        auto& ppos = reg.addComponent<PositionComponent>(e);
+        ppos.x = tx; ppos.y = ty;
+        auto& ppc = reg.addComponent<PieceComponent>(e);
+        ppc.name = "Dropped";
+        ppc.symbol = chosenSymbol;
+        ppc.owner = m_localPlayer;
+
+        // link to board cell
+        for (auto cell : reg.aliveEntities()) {
+            auto bc = reg.getComponent<BoardCellComponent>(cell);
+            if (bc && bc->x == tx && bc->y == ty) {
+                bc->piece = e;
+                break;
+            }
+        }
+
+        // Switch turn
+        for (auto e2 : reg.aliveEntities()) {
+            auto t = reg.getComponent<TurnComponent>(e2);
+            if (t) { t->currentPlayer = 1 - t->currentPlayer; break; }
+        }
+
+        // Send drop to opponent
+        if (m_opponentPid != 0) {
+            std::string path = "/tmp/terminalShogi_move_" + std::to_string(getpid());
+            std::ofstream out(path);
+            out << "D " << chosenSymbol << " " << tx << " " << ty << "\n";
+            out.close();
+            kill(m_opponentPid, SIGUSR1);
+        }
+
+        return;
+    }
+
     std::stringstream ss(line);
     int fx, fy;
     if (!(ss >> fx >> fy)) {
@@ -187,7 +302,6 @@ void InputSystem::handleMyTurn(ecs::Registry& reg) {
         }
     }
     m_renderer.refreshScreen();
-
     // Prompt for destination
     m_renderer.drawText(0, 21, "Move to: x y");
     m_renderer.refreshScreen();
@@ -204,6 +318,7 @@ void InputSystem::handleMyTurn(ecs::Registry& reg) {
     tx--; ty--;
 
     // Check move
+    bool moved = false;
     for (const auto& m : pieceMoves) {
         if (m.toX == tx && m.toY == ty) {
             applyMove(reg, m);
@@ -211,27 +326,27 @@ void InputSystem::handleMyTurn(ecs::Registry& reg) {
             // Switch turn
             for (auto e : reg.aliveEntities()) {
                 auto t = reg.getComponent<TurnComponent>(e);
-                if (t) {
-                    t->currentPlayer = 1 - t->currentPlayer;
-                    break;
-                }
+                if (t) { t->currentPlayer = 1 - t->currentPlayer; break; }
             }
 
             // Send move
             if (m_opponentPid != 0) {
                 std::string path = "/tmp/terminalShogi_move_" + std::to_string(getpid());
                 std::ofstream out(path);
-                out << m.fromX << " " << m.fromY << " " << m.toX << " " << m.toY << "\n";
+                out << "M " << m.fromX << " " << m.fromY << " " << m.toX << " " << m.toY << "\n";
                 out.close();
                 kill(m_opponentPid, SIGUSR1);
             }
 
-            return;
+            moved = true;
+            break;
         }
     }
 
-    m_renderer.drawText(0, 22, "Invalid move.");
-    m_renderer.refreshScreen();
+    if (!moved) {
+        m_renderer.drawText(0, 22, "Invalid move.");
+        m_renderer.refreshScreen();
+    }
 }
 
 void InputSystem::handleOpponentTurn(ecs::Registry& reg) {
@@ -270,16 +385,48 @@ void InputSystem::handleOpponentTurn(ecs::Registry& reg) {
         std::string path = "/tmp/terminalShogi_move_" + std::to_string(sender);
         std::ifstream in(path);
         if (in) {
-            core::Move m;
-            if (in >> m.fromX >> m.fromY >> m.toX >> m.toY) {
-                applyMove(reg, m);
+            std::string type;
+            if (in >> type) {
+                if (type == "M") {
+                    core::Move m;
+                    if (in >> m.fromX >> m.fromY >> m.toX >> m.toY) {
+                        applyMove(reg, m);
+                        // Switch turn to local
+                        for (auto e : reg.aliveEntities()) {
+                            auto t = reg.getComponent<TurnComponent>(e);
+                            if (t) {
+                                t->currentPlayer = m_localPlayer;
+                                break;
+                            }
+                        }
+                    }
+                } else if (type == "D") {
+                    char sym;
+                    int tx, ty;
+                    if (in >> sym >> tx >> ty) {
+                        // create dropped piece for remote player
+                        auto e = reg.createEntity();
+                        auto& ppos = reg.addComponent<PositionComponent>(e);
+                        ppos.x = tx; ppos.y = ty;
+                        auto& ppc = reg.addComponent<PieceComponent>(e);
+                        ppc.name = "Dropped";
+                        ppc.symbol = sym;
+                        ppc.owner = 1 - m_localPlayer; // sender is the other player
 
-                // Switch turn to local
-                for (auto e : reg.aliveEntities()) {
-                    auto t = reg.getComponent<TurnComponent>(e);
-                    if (t) {
-                        t->currentPlayer = m_localPlayer;
-                        break;
+                        // link to board cell
+                        for (auto cell : reg.aliveEntities()) {
+                            auto bc = reg.getComponent<BoardCellComponent>(cell);
+                            if (bc && bc->x == tx && bc->y == ty) {
+                                bc->piece = e;
+                                break;
+                            }
+                        }
+
+                        // Switch turn to local
+                        for (auto e2 : reg.aliveEntities()) {
+                            auto t = reg.getComponent<TurnComponent>(e2);
+                            if (t) { t->currentPlayer = m_localPlayer; break; }
+                        }
                     }
                 }
             }
