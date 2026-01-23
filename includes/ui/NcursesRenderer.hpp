@@ -5,16 +5,26 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#ifndef NCURSESRENDERER_HPP_
-#define NCURSESRENDERER_HPP_
+#pragma once
+
+#include <vector>
+#include <string>
+
+namespace ui {
 
 class NcursesRenderer {
-    public:
-        NcursesRenderer();
-        ~NcursesRenderer();
+public:
+    NcursesRenderer();
+    ~NcursesRenderer();
 
-    protected:
-    private:
+    void clear();
+    void drawCell(int x, int y, char c);
+    void drawText(int x, int y, const std::string& text);
+    void refreshScreen();
+
+private:
+    int m_width;
+    int m_height;
 };
 
-#endif /* !NCURSESRENDERER_HPP_ */
+} // namespace ui

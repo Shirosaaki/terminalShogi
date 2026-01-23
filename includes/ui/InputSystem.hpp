@@ -5,16 +5,24 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#ifndef INPUTSYSTEM_HPP_
-#define INPUTSYSTEM_HPP_
+#pragma once
+
+#include "UIEvents.hpp"
+#include <queue>
+
+namespace ui {
 
 class InputSystem {
-    public:
-        InputSystem();
-        ~InputSystem();
+public:
+    InputSystem();
+    ~InputSystem();
 
-    protected:
-    private:
+    void pollEvents();               // lit ncurses et remplit la queue
+    bool hasEvent() const;
+    UiEvent nextEvent();
+
+private:
+    std::queue<UiEvent> m_events;
 };
 
-#endif /* !INPUTSYSTEM_HPP_ */
+} // namespace ui

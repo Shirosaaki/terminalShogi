@@ -5,11 +5,32 @@
  *=============================================**/
 
 #include "../../includes/ui/NcursesRenderer.hpp"
+#include <ncurses.h>
 
-NcursesRenderer::NcursesRenderer()
-{
+namespace ui {
+
+NcursesRenderer::NcursesRenderer() {
+    getmaxyx(stdscr, m_height, m_width);
 }
 
-NcursesRenderer::~NcursesRenderer()
-{
+NcursesRenderer::~NcursesRenderer() {
+    // rien ici, endwin() est géré par InputSystem
 }
+
+void NcursesRenderer::clear() {
+    ::clear();
+}
+
+void NcursesRenderer::drawCell(int x, int y, char c) {
+    mvaddch(y, x, c);
+}
+
+void NcursesRenderer::drawText(int x, int y, const std::string& text) {
+    mvaddstr(y, x, text.c_str());
+}
+
+void NcursesRenderer::refreshScreen() {
+    ::refresh();
+}
+
+} // namespace ui

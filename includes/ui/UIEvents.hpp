@@ -5,16 +5,22 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#ifndef UIEVENTS_HPP_
-#define UIEVENTS_HPP_
+#pragma once
+#include <variant>
 
-class UIEvents {
-    public:
-        UIEvents();
-        ~UIEvents();
+namespace ui {
 
-    protected:
-    private:
+struct KeyEvent {
+    int key;
 };
 
-#endif /* !UIEVENTS_HPP_ */
+struct ResizeEvent {
+    int width;
+    int height;
+};
+
+struct QuitEvent {};
+
+using UiEvent = std::variant<KeyEvent, ResizeEvent, QuitEvent>;
+
+} // namespace ui

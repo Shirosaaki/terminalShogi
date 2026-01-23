@@ -5,11 +5,3 @@
  *=============================================**/
 
 #include "../../includes/ui/UIEvents.hpp"
-
-UIEvents::UIEvents()
-{
-}
-
-UIEvents::~UIEvents()
-{
-}
