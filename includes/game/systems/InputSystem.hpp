@@ -37,7 +37,8 @@ private:
     std::vector<char> m_captured[2];
 
     ecs::Entity pieceAt(ecs::Registry& reg, int x, int y);
-    void applyMove(ecs::Registry& reg, const core::Move& m);
+    // recordCapture: when true, the captured piece is added to the local captured list
+    void applyMove(ecs::Registry& reg, const core::Move& m, bool recordCapture = true);
     void handleMyTurn(ecs::Registry& reg);
     void handleOpponentTurn(ecs::Registry& reg);
 };

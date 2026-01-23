@@ -32,17 +32,16 @@ InputSystem::InputSystem(core::MoveGeneratorStrategy& moveGen,
     : m_moveGen(moveGen), m_renderer(renderer), m_input(input), m_localPlayer(localPlayer), m_opponentPid(opponentPid) {}
 
 ecs::Entity InputSystem::pieceAt(ecs::Registry& reg, int x, int y) {
+    // Use BoardCellComponent as single source of truth for what piece is on a cell
     for (auto e : reg.aliveEntities()) {
-        auto pos = reg.getComponent<PositionComponent>(e);
-        auto pc  = reg.getComponent<PieceComponent>(e);
-        if (!pos || !pc) continue;
-        if (pos->x == x && pos->y == y)
-            return e;
+        auto bc = reg.getComponent<BoardCellComponent>(e);
+        if (!bc) continue;
+        if (bc->x == x && bc->y == y) return bc->piece;
     }
     return ecs::INVALID_ENTITY;
 }
 
-void InputSystem::applyMove(ecs::Registry& reg, const core::Move& m) {
+void InputSystem::applyMove(ecs::Registry& reg, const core::Move& m, bool recordCapture) {
     auto piece = pieceAt(reg, m.fromX, m.fromY);
     if (piece == ecs::INVALID_ENTITY) return;
 
@@ -52,19 +51,29 @@ void InputSystem::applyMove(ecs::Registry& reg, const core::Move& m) {
     if (target != ecs::INVALID_ENTITY) {
         auto pc = reg.getComponent<PieceComponent>(target);
         if (pc) {
-            char capturedSymbol = pc->symbol;
-            // Determine current player from TurnComponent
-            int currentPlayer = 0;
-            for (auto e : reg.aliveEntities()) {
-                auto t = reg.getComponent<TurnComponent>(e);
-                if (t) { currentPlayer = t->currentPlayer; break; }
+            if (recordCapture) {
+                char capturedSymbol = pc->symbol;
+                // Determine current player from TurnComponent
+                int currentPlayer = 0;
+                for (auto e : reg.aliveEntities()) {
+                    auto t = reg.getComponent<TurnComponent>(e);
+                    if (t) { currentPlayer = t->currentPlayer; break; }
+                }
+                if (currentPlayer == 0)
+                    capturedSymbol = std::toupper(capturedSymbol);
+                else
+                    capturedSymbol = std::tolower(capturedSymbol);
+                m_captured[currentPlayer].push_back(capturedSymbol);
             }
-            if (currentPlayer == 0)
-                capturedSymbol = std::toupper(capturedSymbol);
-            else
-                capturedSymbol = std::tolower(capturedSymbol);
-            m_captured[currentPlayer].push_back(capturedSymbol);
         }
+
+        // Clear any board cell references pointing to the target before destroying it
+        for (auto e : reg.aliveEntities()) {
+            auto bc = reg.getComponent<BoardCellComponent>(e);
+            if (!bc) continue;
+            if (bc->piece == target) bc->piece = ecs::INVALID_ENTITY;
+        }
+
         reg.destroyEntity(target);
     }
 
@@ -235,7 +244,21 @@ void InputSystem::handleMyTurn(ecs::Registry& reg) {
         auto& ppos = reg.addComponent<PositionComponent>(e);
         ppos.x = tx; ppos.y = ty;
         auto& ppc = reg.addComponent<PieceComponent>(e);
-        ppc.name = "Dropped";
+        // Map symbol to canonical piece name so move generator recognizes it
+        auto symToName = [](char s) {
+            switch (std::toupper(s)) {
+                case 'P': return std::string("Pawn");
+                case 'K': return std::string("King");
+                case 'L': return std::string("Lance");
+                case 'N': return std::string("Knight");
+                case 'S': return std::string("Silver");
+                case 'G': return std::string("Gold");
+                case 'B': return std::string("Bishop");
+                case 'R': return std::string("Rook");
+                default:  return std::string("Pawn");
+            }
+        };
+        ppc.name = symToName(chosenSymbol);
         ppc.symbol = chosenSymbol;
         ppc.owner = m_localPlayer;
 
@@ -367,9 +390,9 @@ void InputSystem::handleOpponentTurn(ecs::Registry& reg) {
     // Receive move
     pid_t sender = core::SignalHandler::lastUserSender();
     if (sender != 0) {
-        // First check for an exit notification
-        std::string exitPath = "/tmp/terminalShogi_exit_" + std::to_string(sender);
-        if (access(exitPath.c_str(), F_OK) == 0) {
+            // First check for an exit notification
+            std::string exitPath = "/tmp/terminalShogi_exit_" + std::to_string(sender);
+            if (access(exitPath.c_str(), F_OK) == 0) {
             // Mark game over locally
             for (auto e : reg.aliveEntities()) {
                 auto gs = reg.getComponent<GameStatusComponent>(e);
@@ -390,7 +413,7 @@ void InputSystem::handleOpponentTurn(ecs::Registry& reg) {
                 if (type == "M") {
                     core::Move m;
                     if (in >> m.fromX >> m.fromY >> m.toX >> m.toY) {
-                        applyMove(reg, m);
+                            applyMove(reg, m, false);
                         // Switch turn to local
                         for (auto e : reg.aliveEntities()) {
                             auto t = reg.getComponent<TurnComponent>(e);
@@ -409,7 +432,21 @@ void InputSystem::handleOpponentTurn(ecs::Registry& reg) {
                         auto& ppos = reg.addComponent<PositionComponent>(e);
                         ppos.x = tx; ppos.y = ty;
                         auto& ppc = reg.addComponent<PieceComponent>(e);
-                        ppc.name = "Dropped";
+                        // Map symbol to canonical piece name so move generator recognizes it
+                        auto symToName = [](char s) {
+                            switch (std::toupper(s)) {
+                                case 'P': return std::string("Pawn");
+                                case 'K': return std::string("King");
+                                case 'L': return std::string("Lance");
+                                case 'N': return std::string("Knight");
+                                case 'S': return std::string("Silver");
+                                case 'G': return std::string("Gold");
+                                case 'B': return std::string("Bishop");
+                                case 'R': return std::string("Rook");
+                                default:  return std::string("Pawn");
+                            }
+                        };
+                        ppc.name = symToName(sym);
                         ppc.symbol = sym;
                         ppc.owner = 1 - m_localPlayer; // sender is the other player
 
