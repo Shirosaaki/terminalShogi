@@ -8,18 +8,27 @@
 #pragma once
 
 #include "../../core/ecs/System.hpp"
-#include "../../ui/InputSystem.hpp"
-#include "../../core/patterns/Command.hpp"
-#include <queue>
-#include <memory>
+#include "../../core/patterns/MoveGeneratorStrategy.hpp"
+#include "../../ui/NcursesRenderer.hpp"
+
+namespace ui { class InputSystem; }
 
 class InputSystem : public ecs::System {
 public:
-    InputSystem(ui::InputSystem& input);
+    InputSystem(core::MoveGeneratorStrategy& moveGen,
+                ui::NcursesRenderer& renderer,
+                ui::InputSystem& input,
+                int localPlayer);
 
     void update(ecs::Registry& registry, float dt) override;
 
 private:
+    core::MoveGeneratorStrategy& m_moveGen;
+    ui::NcursesRenderer& m_renderer;
     ui::InputSystem& m_input;
-    std::queue<std::unique_ptr<core::Command>> m_commands;
+    int m_localPlayer;
+
+    bool readCoords(int& x, int& y);
+    ecs::Entity pieceAt(ecs::Registry& reg, int x, int y);
+    void applyMove(ecs::Registry& reg, const core::Move& m);
 };

@@ -6,6 +6,7 @@
 
 #include "../../includes/ui/InputSystem.hpp"
 #include <ncurses.h>
+#include <string>
 
 namespace ui {
 
@@ -53,6 +54,27 @@ UiEvent InputSystem::nextEvent() {
     UiEvent e = m_events.front();
     m_events.pop();
     return e;
+}
+
+std::string InputSystem::readLineBlocking() {
+    char buffer[256] = {0};
+
+    // Place input below the board (board is 9x9, each row is 2 lines, plus border)
+    int input_y = 22; // 9*2+4 for border and spacing
+    int input_x = 0;
+
+    // Clear the input line
+    move(input_y, input_x);
+    clrtoeol();
+
+    // Temporarily switch to blocking mode and enable echo for line input
+    nodelay(stdscr, FALSE);
+    echo();
+    mvgetnstr(input_y, input_x, buffer, 255);
+    noecho();
+    nodelay(stdscr, TRUE);
+
+    return std::string(buffer);
 }
 
 } // namespace ui

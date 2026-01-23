@@ -9,6 +9,7 @@
 
 #include "UIEvents.hpp"
 #include <queue>
+#include <string>
 
 namespace ui {
 
@@ -20,6 +21,7 @@ public:
     void pollEvents();               // lit ncurses et remplit la queue
     bool hasEvent() const;
     UiEvent nextEvent();
+    std::string readLineBlocking();
 
 private:
     std::queue<UiEvent> m_events;
