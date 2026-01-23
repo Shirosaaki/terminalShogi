@@ -5,16 +5,10 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#ifndef CLEANUPSYSTEM_HPP_
-#define CLEANUPSYSTEM_HPP_
+#pragma once
+#include "../../core/ecs/System.hpp"
 
-class CleanupSystem {
-    public:
-        CleanupSystem();
-        ~CleanupSystem();
-
-    protected:
-    private:
+class CleanupSystem : public ecs::System {
+public:
+    void update(ecs::Registry& registry, float dt) override;
 };
-
-#endif /* !CLEANUPSYSTEM_HPP_ */

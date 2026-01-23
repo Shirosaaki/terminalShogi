@@ -5,16 +5,17 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#ifndef MOVEMENTSYSTEM_HPP_
-#define MOVEMENTSYSTEM_HPP_
+#pragma once
 
-class MovementSystem {
-    public:
-        MovementSystem();
-        ~MovementSystem();
+#include "../../core/ecs/System.hpp"
+#include "../../core/patterns/MoveGeneratorStrategy.hpp"
 
-    protected:
-    private:
+class MovementSystem : public ecs::System {
+public:
+    MovementSystem(core::MoveGeneratorStrategy& strategy);
+
+    void update(ecs::Registry& registry, float dt) override;
+
+private:
+    core::MoveGeneratorStrategy& m_strategy;
 };
-
-#endif /* !MOVEMENTSYSTEM_HPP_ */

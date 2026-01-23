@@ -6,10 +6,6 @@
 
 #include "../../includes/game/systems/CleanupSystem.hpp"
 
-CleanupSystem::CleanupSystem()
-{
-}
-
-CleanupSystem::~CleanupSystem()
-{
+void CleanupSystem::update(ecs::Registry& registry, float) {
+    registry.cleanup();
 }

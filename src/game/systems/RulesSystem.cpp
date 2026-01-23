@@ -6,10 +6,9 @@
 
 #include "../../includes/game/systems/RulesSystem.hpp"
 
-RulesSystem::RulesSystem()
-{
-}
+RulesSystem::RulesSystem(core::GameState& state)
+    : m_state(state) {}
 
-RulesSystem::~RulesSystem()
-{
+void RulesSystem::update(ecs::Registry& registry, float) {
+    m_state.update(registry);
 }

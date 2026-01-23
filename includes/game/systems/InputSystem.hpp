@@ -5,16 +5,21 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#ifndef INPUTSYSTEM_HPP_
-#define INPUTSYSTEM_HPP_
+#pragma once
 
-class InputSystem {
-    public:
-        InputSystem();
-        ~InputSystem();
+#include "../../core/ecs/System.hpp"
+#include "../../ui/InputSystem.hpp"
+#include "../../core/patterns/Command.hpp"
+#include <queue>
+#include <memory>
 
-    protected:
-    private:
+class InputSystem : public ecs::System {
+public:
+    InputSystem(ui::InputSystem& input);
+
+    void update(ecs::Registry& registry, float dt) override;
+
+private:
+    ui::InputSystem& m_input;
+    std::queue<std::unique_ptr<core::Command>> m_commands;
 };
-
-#endif /* !INPUTSYSTEM_HPP_ */

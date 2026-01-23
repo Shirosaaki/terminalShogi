@@ -5,16 +5,17 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#ifndef RENDERSYSTEM_HPP_
-#define RENDERSYSTEM_HPP_
+#pragma once
 
-class RenderSystem {
-    public:
-        RenderSystem();
-        ~RenderSystem();
+#include "../../core/ecs/System.hpp"
+#include "../../ui/NcursesRenderer.hpp"
 
-    protected:
-    private:
+class RenderSystem : public ecs::System {
+public:
+    RenderSystem(ui::NcursesRenderer& renderer);
+
+    void update(ecs::Registry& registry, float dt) override;
+
+private:
+    ui::NcursesRenderer& m_renderer;
 };
-
-#endif /* !RENDERSYSTEM_HPP_ */

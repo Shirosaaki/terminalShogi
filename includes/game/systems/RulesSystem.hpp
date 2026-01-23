@@ -5,16 +5,17 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#ifndef RULESSYSTEM_HPP_
-#define RULESSYSTEM_HPP_
+#pragma once
 
-class RulesSystem {
-    public:
-        RulesSystem();
-        ~RulesSystem();
+#include "../../core/ecs/System.hpp"
+#include "../../core/patterns/GameState.hpp"
 
-    protected:
-    private:
+class RulesSystem : public ecs::System {
+public:
+    RulesSystem(core::GameState& state);
+
+    void update(ecs::Registry& registry, float dt) override;
+
+private:
+    core::GameState& m_state;
 };
-
-#endif /* !RULESSYSTEM_HPP_ */
