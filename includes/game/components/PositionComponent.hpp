@@ -5,16 +5,10 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#ifndef POSITIONCOMPONENT_HPP_
-#define POSITIONCOMPONENT_HPP_
+#pragma once
+#include "../../core/ecs/Component.hpp"
 
-class PositionComponent {
-    public:
-        PositionComponent();
-        ~PositionComponent();
-
-    protected:
-    private:
+struct PositionComponent : public ecs::IComponent {
+    int x = 0;
+    int y = 0;
 };
-
-#endif /* !POSITIONCOMPONENT_HPP_ */

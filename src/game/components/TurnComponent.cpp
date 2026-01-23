@@ -6,10 +6,3 @@
 
 #include "../../includes/game/components/TurnComponent.hpp"
 
-TurnComponent::TurnComponent()
-{
-}
-
-TurnComponent::~TurnComponent()
-{
-}

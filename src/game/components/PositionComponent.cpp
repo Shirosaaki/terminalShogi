@@ -5,11 +5,3 @@
  *=============================================**/
 
 #include "../../includes/game/components/PositionComponent.hpp"
-
-PositionComponent::PositionComponent()
-{
-}
-
-PositionComponent::~PositionComponent()
-{
-}

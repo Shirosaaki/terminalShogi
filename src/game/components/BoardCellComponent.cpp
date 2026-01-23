@@ -5,11 +5,3 @@
  *=============================================**/
 
 #include "../../includes/game/components/BoardCellComponent.hpp"
-
-BoardCellComponent::BoardCellComponent()
-{
-}
-
-BoardCellComponent::~BoardCellComponent()
-{
-}

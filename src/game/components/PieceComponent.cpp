@@ -5,11 +5,3 @@
  *=============================================**/
 
 #include "../../includes/game/components/PieceComponent.hpp"
-
-PieceComponent::PieceComponent()
-{
-}
-
-PieceComponent::~PieceComponent()
-{
-}

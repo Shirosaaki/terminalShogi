@@ -5,16 +5,12 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#ifndef PIECECOMPONENT_HPP_
-#define PIECECOMPONENT_HPP_
+#pragma once
+#include "../../core/ecs/Component.hpp"
+#include <string>
 
-class PieceComponent {
-    public:
-        PieceComponent();
-        ~PieceComponent();
-
-    protected:
-    private:
+struct PieceComponent : public ecs::IComponent {
+    std::string name;
+    char symbol = '?';
+    int owner = 0; // joueur 0 ou 1
 };
-
-#endif /* !PIECECOMPONENT_HPP_ */

@@ -5,16 +5,10 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#ifndef GAMESTATUSCOMPONENT_HPP_
-#define GAMESTATUSCOMPONENT_HPP_
+#pragma once
+#include "../../core/ecs/Component.hpp"
 
-class GameStatusComponent {
-    public:
-        GameStatusComponent();
-        ~GameStatusComponent();
-
-    protected:
-    private:
+struct GameStatusComponent : public ecs::IComponent {
+    bool gameOver = false;
+    int winner = -1; // -1 = aucun
 };
-
-#endif /* !GAMESTATUSCOMPONENT_HPP_ */

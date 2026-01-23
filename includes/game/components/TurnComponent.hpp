@@ -5,16 +5,9 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#ifndef TURNCOMPONENT_HPP_
-#define TURNCOMPONENT_HPP_
+#pragma once
+#include "../../core/ecs/Component.hpp"
 
-class TurnComponent {
-    public:
-        TurnComponent();
-        ~TurnComponent();
-
-    protected:
-    private:
+struct TurnComponent : public ecs::IComponent {
+    int currentPlayer = 0;
 };
-
-#endif /* !TURNCOMPONENT_HPP_ */

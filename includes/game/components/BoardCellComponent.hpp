@@ -5,16 +5,12 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#ifndef BOARDCELLCOMPONENT_HPP_
-#define BOARDCELLCOMPONENT_HPP_
+#pragma once
+#include "../../core/ecs/Component.hpp"
+#include "../../core/ecs/Entity.hpp"
 
-class BoardCellComponent {
-    public:
-        BoardCellComponent();
-        ~BoardCellComponent();
-
-    protected:
-    private:
+struct BoardCellComponent : public ecs::IComponent {
+    int x = 0;
+    int y = 0;
+    ecs::Entity piece = ecs::INVALID_ENTITY;
 };
-
-#endif /* !BOARDCELLCOMPONENT_HPP_ */

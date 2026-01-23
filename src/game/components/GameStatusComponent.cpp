@@ -5,11 +5,3 @@
  *=============================================**/
 
 #include "../../includes/game/components/GameStatusComponent.hpp"
-
-GameStatusComponent::GameStatusComponent()
-{
-}
-
-GameStatusComponent::~GameStatusComponent()
-{
-}
