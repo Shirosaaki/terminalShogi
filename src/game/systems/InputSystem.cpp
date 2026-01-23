@@ -46,9 +46,25 @@ void InputSystem::applyMove(ecs::Registry& reg, const core::Move& m) {
     auto piece = pieceAt(reg, m.fromX, m.fromY);
     if (piece == ecs::INVALID_ENTITY) return;
 
-    // remove captured piece
+
+    // remove captured piece and add to hand
     auto target = pieceAt(reg, m.toX, m.toY);
     if (target != ecs::INVALID_ENTITY) {
+        auto pc = reg.getComponent<PieceComponent>(target);
+        if (pc) {
+            char capturedSymbol = pc->symbol;
+            // Determine current player from TurnComponent
+            int currentPlayer = 0;
+            for (auto e : reg.aliveEntities()) {
+                auto t = reg.getComponent<TurnComponent>(e);
+                if (t) { currentPlayer = t->currentPlayer; break; }
+            }
+            if (currentPlayer == 0)
+                capturedSymbol = std::toupper(capturedSymbol);
+            else
+                capturedSymbol = std::tolower(capturedSymbol);
+            m_captured[currentPlayer].push_back(capturedSymbol);
+        }
         reg.destroyEntity(target);
     }
 
@@ -145,9 +161,9 @@ void InputSystem::handleMyTurn(ecs::Registry& reg) {
     for (const auto& m : allMoves) {
         if (m.fromX == fx && m.fromY == fy) {
             pieceMoves.push_back(m);
-            // Draw '.' at to position: row = 1 + y*2, col = 2 + x*4
+            // Draw '.' at to position: col = 5 + 2 + x*4, row = 1 + y*2 (to match RenderSystem offset)
             int row = 1 + m.toY * 2;
-            int col = 2 + m.toX * 4;
+            int col = 5 + 2 + m.toX * 4;
             m_renderer.drawCell(col, row, '.');
         }
     }

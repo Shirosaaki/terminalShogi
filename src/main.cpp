@@ -83,11 +83,16 @@ int main(int argc, char** argv) {
     auto moveGen = factory.createMoveGenerator();
     auto systems = factory.createSystems();
 
-    // Injection manuelle des systèmes dépendants de l’UI
-    // Render first so the board is visible before blocking input
-    systems.push_back(std::make_unique<RenderSystem>(renderer));
-    // Pass localPlayer and opponentPidValue to InputSystem
-    systems.push_back(std::make_unique<InputSystem>(*moveGen, renderer, input, localPlayer, opponentPidValue));
+    // Create InputSystem first so we can pass captured pieces to RenderSystem
+    // Add movement system that uses the same move generator
+    systems.push_back(std::make_unique<MovementSystem>(*moveGen));
+
+    auto inputSystem = std::make_unique<InputSystem>(*moveGen, renderer, input, localPlayer, opponentPidValue);
+    // RenderSystem needs to know about captured pieces
+    auto renderSystem = std::make_unique<RenderSystem>(renderer, &inputSystem->getCaptured(0), &inputSystem->getCaptured(1));
+
+    systems.push_back(std::move(renderSystem));
+    systems.push_back(std::move(inputSystem));
 
     // -------------------------------
     // 5. Boucle principale

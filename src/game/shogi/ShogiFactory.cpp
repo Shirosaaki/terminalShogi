@@ -25,6 +25,9 @@ std::vector<std::unique_ptr<ecs::System>> ShogiFactory::createSystems() {
     auto rules = new ShogiRules(); // tu peux gérer la durée de vie autrement
     systems.push_back(std::make_unique<RulesSystem>(*rules));
 
+    // Add cleanup system (no external dependencies)
+    systems.push_back(std::make_unique<CleanupSystem>());
+
     return systems;
 }
 

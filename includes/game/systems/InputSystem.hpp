@@ -23,12 +23,18 @@ public:
 
     void update(ecs::Registry& registry, float dt) override;
 
+    // Get captured pieces for a player (0 or 1)
+    const std::vector<char>& getCaptured(int player) const { return m_captured[player]; }
+
 private:
     core::MoveGeneratorStrategy& m_moveGen;
     ui::NcursesRenderer& m_renderer;
     ui::InputSystem& m_input;
     int m_localPlayer;
     pid_t m_opponentPid;
+
+    // Store captured pieces for each player (0: left, 1: right)
+    std::vector<char> m_captured[2];
 
     ecs::Entity pieceAt(ecs::Registry& reg, int x, int y);
     void applyMove(ecs::Registry& reg, const core::Move& m);
