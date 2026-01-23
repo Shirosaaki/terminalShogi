@@ -5,16 +5,26 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#ifndef GAMEFACTORY_HPP_
-#define GAMEFACTORY_HPP_
+#pragma once
+
+#include <memory>
+#include <vector>
+#include "../ecs/System.hpp"
+#include "MoveGeneratorStrategy.hpp"
+
+namespace core {
 
 class GameFactory {
-    public:
-        GameFactory();
-        ~GameFactory();
+public:
+    virtual ~GameFactory() = default;
 
-    protected:
-    private:
+    virtual void createEntities(ecs::Registry& registry) = 0;
+
+    virtual std::vector<std::unique_ptr<ecs::System>>
+    createSystems() = 0;
+
+    virtual std::unique_ptr<MoveGeneratorStrategy>
+    createMoveGenerator() = 0;
 };
 
-#endif /* !GAMEFACTORY_HPP_ */
+} // namespace core

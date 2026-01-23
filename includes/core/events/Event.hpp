@@ -5,16 +5,14 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#ifndef EVENT_HPP_
-#define EVENT_HPP_
+#pragma once
+#include <string>
 
-class Event {
-    public:
-        Event();
-        ~Event();
+namespace core {
 
-    protected:
-    private:
+struct Event {
+    std::string type;
+    // Tu peux ajouter un std::variant payload plus tard
 };
 
-#endif /* !EVENT_HPP_ */
+} // namespace core

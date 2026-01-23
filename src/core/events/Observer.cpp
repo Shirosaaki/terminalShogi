@@ -5,11 +5,3 @@
  *=============================================**/
 
 #include "../../includes/core/events/Observer.hpp"
-
-Observer::Observer()
-{
-}
-
-Observer::~Observer()
-{
-}

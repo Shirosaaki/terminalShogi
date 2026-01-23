@@ -5,16 +5,16 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#ifndef GAMESTATE_HPP_
-#define GAMESTATE_HPP_
+#pragma once
+#include "core/ecs/Registry.hpp"
+
+namespace core {
 
 class GameState {
-    public:
-        GameState();
-        ~GameState();
-
-    protected:
-    private:
+public:
+    virtual ~GameState() = default;
+    virtual void update(ecs::Registry& registry) = 0;
+    virtual bool isGameOver() const = 0;
 };
 
-#endif /* !GAMESTATE_HPP_ */
+} // namespace core

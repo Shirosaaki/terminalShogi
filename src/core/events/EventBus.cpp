@@ -5,11 +5,26 @@
  *=============================================**/
 
 #include "../../includes/core/events/EventBus.hpp"
+#include <algorithm>
 
-EventBus::EventBus()
-{
+namespace core {
+
+void EventBus::subscribe(Observer* obs) {
+    m_observers.push_back(obs);
 }
 
-EventBus::~EventBus()
-{
+void EventBus::unsubscribe(Observer* obs) {
+    m_observers.erase(
+        std::remove(m_observers.begin(), m_observers.end(), obs),
+        m_observers.end()
+    );
 }
+
+void EventBus::emit(const Event& e) {
+    for (auto* obs : m_observers) {
+        obs->onEvent(e);
+    }
+}
+
+} // namespace core
+

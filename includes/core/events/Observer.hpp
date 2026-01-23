@@ -5,16 +5,15 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#ifndef OBSERVER_HPP_
-#define OBSERVER_HPP_
+#pragma once
+#include "Event.hpp"
+
+namespace core {
 
 class Observer {
-    public:
-        Observer();
-        ~Observer();
-
-    protected:
-    private:
+public:
+    virtual ~Observer() = default;
+    virtual void onEvent(const Event& e) = 0;
 };
 
-#endif /* !OBSERVER_HPP_ */
+} // namespace core

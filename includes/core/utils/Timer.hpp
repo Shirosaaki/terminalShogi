@@ -5,16 +5,20 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#ifndef TIMER_HPP_
-#define TIMER_HPP_
+#pragma once
+#include <chrono>
+
+namespace core {
 
 class Timer {
-    public:
-        Timer();
-        ~Timer();
+public:
+    Timer();
 
-    protected:
-    private:
+    void reset();
+    float elapsed() const;
+
+private:
+    std::chrono::steady_clock::time_point m_start;
 };
 
-#endif /* !TIMER_HPP_ */
+} // namespace core

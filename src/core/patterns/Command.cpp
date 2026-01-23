@@ -6,10 +6,3 @@
 
 #include "../../includes/core/patterns/Command.hpp"
 
-Command::Command()
-{
-}
-
-Command::~Command()
-{
-}

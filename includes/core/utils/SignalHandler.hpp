@@ -5,16 +5,18 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#ifndef SIGNALHANDLER_HPP_
-#define SIGNALHANDLER_HPP_
+#pragma once
+
+#include <functional>
+
+namespace core {
 
 class SignalHandler {
-    public:
-        SignalHandler();
-        ~SignalHandler();
-
-    protected:
-    private:
+public:
+    static void init();
+    static void setInterruptCallback(std::function<void()> cb);
+    static std::function<void()> s_interruptCallback;
+private:
 };
 
-#endif /* !SIGNALHANDLER_HPP_ */
+} // namespace core

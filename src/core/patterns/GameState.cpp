@@ -5,11 +5,3 @@
  *=============================================**/
 
 #include "../../includes/core/patterns/GameState.hpp"
-
-GameState::GameState()
-{
-}
-
-GameState::~GameState()
-{
-}

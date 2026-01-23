@@ -5,11 +5,3 @@
  *=============================================**/
 
 #include "../../includes/core/patterns/MoveGeneratorStrategy.hpp"
-
-MoveGeneratorStrategy::MoveGeneratorStrategy()
-{
-}
-
-MoveGeneratorStrategy::~MoveGeneratorStrategy()
-{
-}

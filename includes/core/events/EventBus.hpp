@@ -5,16 +5,22 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#ifndef EVENTBUS_HPP_
-#define EVENTBUS_HPP_
+#pragma once
+
+#include "Event.hpp"
+#include "Observer.hpp"
+#include <vector>
+
+namespace core {
 
 class EventBus {
-    public:
-        EventBus();
-        ~EventBus();
+public:
+    void subscribe(Observer* obs);
+    void unsubscribe(Observer* obs);
+    void emit(const Event& e);
 
-    protected:
-    private:
+private:
+    std::vector<Observer*> m_observers;
 };
 
-#endif /* !EVENTBUS_HPP_ */
+} // namespace core

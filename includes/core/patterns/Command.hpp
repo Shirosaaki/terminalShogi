@@ -5,16 +5,15 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#ifndef COMMAND_HPP_
-#define COMMAND_HPP_
+#pragma once
+#include "../ecs/Registry.hpp"
+
+namespace core {
 
 class Command {
-    public:
-        Command();
-        ~Command();
-
-    protected:
-    private:
+public:
+    virtual ~Command() = default;
+    virtual void execute(ecs::Registry& registry) = 0;
 };
 
-#endif /* !COMMAND_HPP_ */
+} // namespace core

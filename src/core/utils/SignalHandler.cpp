@@ -5,11 +5,24 @@
  *=============================================**/
 
 #include "../../includes/core/utils/SignalHandler.hpp"
+#include <csignal>
 
-SignalHandler::SignalHandler()
-{
+namespace core {
+
+std::function<void()> SignalHandler::s_interruptCallback = nullptr;
+
+static void handleSigInt(int) {
+    if (core::SignalHandler::s_interruptCallback) {
+        core::SignalHandler::s_interruptCallback();
+    }
 }
 
-SignalHandler::~SignalHandler()
-{
+void SignalHandler::init() {
+    std::signal(SIGINT, handleSigInt);
 }
+
+void SignalHandler::setInterruptCallback(std::function<void()> cb) {
+    s_interruptCallback = cb;
+}
+
+} // namespace core

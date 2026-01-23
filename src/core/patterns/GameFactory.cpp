@@ -5,11 +5,3 @@
  *=============================================**/
 
 #include "../../includes/core/patterns/GameFactory.hpp"
-
-GameFactory::GameFactory()
-{
-}
-
-GameFactory::~GameFactory()
-{
-}
