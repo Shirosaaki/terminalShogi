@@ -1,3 +1,0 @@
-/home/matheocampanella/perso/terminalShogi/build/CMakeFiles/terminalShogi.dir
-/home/matheocampanella/perso/terminalShogi/build/CMakeFiles/edit_cache.dir
-/home/matheocampanella/perso/terminalShogi/build/CMakeFiles/rebuild_cache.dir

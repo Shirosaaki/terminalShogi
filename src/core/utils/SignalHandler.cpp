@@ -17,12 +17,24 @@ static void handleSigInt(int) {
     }
 }
 
-void SignalHandler::init() {
-    std::signal(SIGINT, handleSigInt);
-}
-
 void SignalHandler::setInterruptCallback(std::function<void()> cb) {
     s_interruptCallback = cb;
+}
+
+std::function<void()> SignalHandler::s_userCallback = nullptr;
+
+static void handleSigUsr1(int) {
+    if (core::SignalHandler::s_userCallback)
+        core::SignalHandler::s_userCallback();
+}
+
+void SignalHandler::init() {
+    std::signal(SIGINT, handleSigInt);
+    std::signal(SIGUSR1, handleSigUsr1);
+}
+
+void SignalHandler::setUserCallback(std::function<void()> cb) {
+    s_userCallback = cb;
 }
 
 } // namespace core

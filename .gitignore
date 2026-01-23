@@ -1,0 +1,5 @@
+build
+terminalShogi
+*.o
+*.obj
+*.so

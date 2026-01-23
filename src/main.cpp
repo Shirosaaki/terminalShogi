@@ -10,25 +10,39 @@
 #include <string>
 #include <unistd.h>     // getpid()
 #include <optional>
+#include <thread>
+#include <chrono>
 
 int main(int argc, char** argv) {
-    // -------------------------------
-    // 1. Gestion du PID joueur
-    // -------------------------------
     pid_t myPid = getpid();
     std::optional<pid_t> opponentPid;
 
+    bool secondPlayerConnected = false;
+
+    // Installer le callback SIGUSR1 AVANT d’attendre
+    core::SignalHandler::init();
+    core::SignalHandler::setUserCallback([&](){
+        secondPlayerConnected = true;
+    });
+
     if (argc == 1) {
         std::cout << "=== terminalShogi ===\n";
-        std::cout << "Mode 2 joueurs : en attente du second joueur...\n";
-        std::cout << "PID du joueur 1 : " << myPid << "\n";
-        std::cout << "Lancez : ./terminalShogi " << myPid << "\n";
-        std::cout << "Appuyez sur Entrée pour continuer en solo.\n";
-        std::cin.get();
-    } else if (argc == 2) {
+        std::cout << "Waiting for second player...\n";
+        std::cout << "PID: " << myPid << "\n";
+        std::cout << "Launch: ./terminalShogi " << myPid << "\n";
+
+        while (!secondPlayerConnected) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+
+        std::cout << "Second player connected!\n";
+    }
+    else if (argc == 2) {
         opponentPid = std::stoi(argv[1]);
-        std::cout << "=== terminalShogi ===\n";
-        std::cout << "Connexion au joueur 1 (PID " << *opponentPid << ")\n";
+        std::cout << "Connecting to player 1 (PID " << *opponentPid << ")\n";
+
+        // On notifie le joueur 1
+        kill(*opponentPid, SIGUSR1);
     } else {
         std::cerr << "Usage: ./terminalShogi [pid]\n";
         return 1;
@@ -59,6 +73,7 @@ int main(int argc, char** argv) {
 
     auto moveGen = factory.createMoveGenerator();
     auto systems = factory.createSystems();
+
 
     // Injection manuelle des systèmes dépendants de l’UI
     systems.push_back(std::make_unique<InputSystem>(input));

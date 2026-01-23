@@ -10,6 +10,7 @@
 
 namespace shogi {
 
+void createBoard(ecs::Registry& registry);
 void createPieces(ecs::Registry& registry);
 
 }

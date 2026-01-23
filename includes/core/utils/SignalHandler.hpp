@@ -15,7 +15,9 @@ class SignalHandler {
 public:
     static void init();
     static void setInterruptCallback(std::function<void()> cb);
+    static void setUserCallback(std::function<void()> cb);
     static std::function<void()> s_interruptCallback;
+    static std::function<void()> s_userCallback;
 private:
 };
 

@@ -14,16 +14,18 @@
 #include "../../../includes/game/systems/CleanupSystem.hpp"
 
 void ShogiFactory::createEntities(ecs::Registry& registry) {
-    // TODO: créer le plateau + pièces
+    shogi::createPieces(registry);
 }
 
 std::vector<std::unique_ptr<ecs::System>> ShogiFactory::createSystems() {
     std::vector<std::unique_ptr<ecs::System>> systems;
 
-    // TODO: ajouter InputSystem (nécessite injection)
-    // TODO: ajouter RenderSystem (nécessite renderer)
-
+    // Ces systèmes nécessitent des dépendances (renderer, input) injectées dans main
+    // Ici on ne met que ceux qui n'ont pas de dépendances externes
+    auto rules = new ShogiRules(); // tu peux gérer la durée de vie autrement
+    systems.push_back(std::make_unique<RulesSystem>(*rules));
     systems.push_back(std::make_unique<CleanupSystem>());
+
     return systems;
 }
 
