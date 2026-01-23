@@ -5,11 +5,3 @@
  *=============================================**/
 
 #include "../../includes/core/ecs/System.hpp"
-
-System::System()
-{
-}
-
-System::~System()
-{
-}

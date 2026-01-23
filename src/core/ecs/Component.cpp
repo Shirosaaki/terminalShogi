@@ -6,10 +6,11 @@
 
 #include "../../includes/core/ecs/Component.hpp"
 
-Component::Component()
-{
+namespace ecs {
+
+ComponentTypeId nextComponentTypeId() {
+    static ComponentTypeId last = 0;
+    return last++;
 }
 
-Component::~Component()
-{
-}
+} // namespace ecs

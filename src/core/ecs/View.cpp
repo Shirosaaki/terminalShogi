@@ -6,10 +6,3 @@
 
 #include "../../includes/core/ecs/View.hpp"
 
-View::View()
-{
-}
-
-View::~View()
-{
-}

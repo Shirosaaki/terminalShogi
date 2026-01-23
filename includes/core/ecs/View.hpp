@@ -5,16 +5,23 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#ifndef VIEW_HPP_
-#define VIEW_HPP_
+#pragma once
 
+#include "Registry.hpp"
+#include <vector>
+
+namespace ecs {
+
+template<typename... Components>
 class View {
-    public:
-        View();
-        ~View();
+public:
+    View(Registry& reg);
+    std::vector<Entity> entities() const;
 
-    protected:
-    private:
+private:
+    Registry& m_registry;
 };
 
-#endif /* !VIEW_HPP_ */
+} // namespace ecs
+
+#include "View.inl"

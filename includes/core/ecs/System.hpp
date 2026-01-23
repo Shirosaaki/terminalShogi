@@ -5,16 +5,16 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#ifndef SYSTEM_HPP_
-#define SYSTEM_HPP_
+#pragma once
+#include "Registry.hpp"
+
+namespace ecs {
 
 class System {
-    public:
-        System();
-        ~System();
-
-    protected:
-    private:
+public:
+    virtual ~System() = default;
+    virtual void update(Registry& registry, float dt) = 0;
 };
 
-#endif /* !SYSTEM_HPP_ */
+} // namespace ecs
+

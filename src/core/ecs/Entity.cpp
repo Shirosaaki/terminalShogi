@@ -6,10 +6,8 @@
 
 #include "../../includes/core/ecs/Entity.hpp"
 
-Entity::Entity()
-{
-}
+namespace ecs {
 
-Entity::~Entity()
-{
-}
+const Entity INVALID_ENTITY = 0;
+
+} // namespace ecs

@@ -5,16 +5,23 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#ifndef COMPONENT_HPP_
-#define COMPONENT_HPP_
+#pragma once
+#include <cstddef>
 
-class Component {
-    public:
-        Component();
-        ~Component();
+namespace ecs {
 
-    protected:
-    private:
+struct IComponent {
+    virtual ~IComponent() = default;
 };
 
-#endif /* !COMPONENT_HPP_ */
+using ComponentTypeId = std::size_t;
+
+ComponentTypeId nextComponentTypeId();
+
+template<typename T>
+ComponentTypeId getComponentTypeId() {
+    static ComponentTypeId id = nextComponentTypeId();
+    return id;
+}
+
+} // namespace ecs

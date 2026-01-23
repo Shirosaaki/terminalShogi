@@ -5,16 +5,13 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#ifndef ENTITY_HPP_
-#define ENTITY_HPP_
+#pragma once
+#include <cstdint>
 
-class Entity {
-    public:
-        Entity();
-        ~Entity();
+namespace ecs {
 
-    protected:
-    private:
-};
+using Entity = std::uint32_t;
+constexpr Entity INVALID_ENTITY = 0;
 
-#endif /* !ENTITY_HPP_ */
+} // namespace ecs
+
