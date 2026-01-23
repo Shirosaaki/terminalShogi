@@ -4,7 +4,7 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#include "../../includes/core/ecs/Component.hpp"
+#include "../../../includes/core/ecs/Component.hpp"
 
 namespace ecs {
 

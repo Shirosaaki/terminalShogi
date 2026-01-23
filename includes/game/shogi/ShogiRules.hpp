@@ -5,16 +5,14 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#ifndef SHOGIRULES_HPP_
-#define SHOGIRULES_HPP_
+#pragma once
+#include "../../core/patterns/GameState.hpp"
 
-class ShogiRules {
-    public:
-        ShogiRules();
-        ~ShogiRules();
+class ShogiRules : public core::GameState {
+public:
+    void update(ecs::Registry& registry) override;
+    bool isGameOver() const override;
 
-    protected:
-    private:
+private:
+    bool m_over = false;
 };
-
-#endif /* !SHOGIRULES_HPP_ */

@@ -4,8 +4,8 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#include "../../includes/game/systems/InputSystem.hpp"
-#include "../../includes/ui/UIEvents.hpp"
+#include "../../../includes/game/systems/InputSystem.hpp"
+#include "../../../includes/ui/UIEvents.hpp"
 
 InputSystem::InputSystem(ui::InputSystem& input)
     : m_input(input) {}

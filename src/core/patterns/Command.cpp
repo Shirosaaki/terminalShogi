@@ -4,5 +4,5 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#include "../../includes/core/patterns/Command.hpp"
+#include "../../../includes/core/patterns/Command.hpp"
 

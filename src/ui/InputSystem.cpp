@@ -5,8 +5,6 @@
  *=============================================**/
 
 #include "../../includes/ui/InputSystem.hpp"
-
-#include "InputSystem.hpp"
 #include <ncurses.h>
 
 namespace ui {

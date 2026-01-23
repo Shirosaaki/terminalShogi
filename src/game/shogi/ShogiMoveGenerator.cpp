@@ -4,12 +4,8 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#include "../../includes/game/shogi/ShogiMoveGenerator.hpp"
+#include "../../../includes/game/shogi/ShogiMoveGenerator.hpp"
 
-ShogiMoveGenerator::ShogiMoveGenerator()
-{
-}
-
-ShogiMoveGenerator::~ShogiMoveGenerator()
-{
+std::vector<core::Move> ShogiMoveGenerator::generateMoves(ecs::Registry&) {
+    return {}; // TODO
 }

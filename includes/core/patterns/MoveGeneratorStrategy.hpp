@@ -7,7 +7,7 @@
 
 #pragma once
 #include <vector>
-#include "core/ecs/Registry.hpp"
+#include "../../core/ecs/Registry.hpp"
 
 namespace core {
 

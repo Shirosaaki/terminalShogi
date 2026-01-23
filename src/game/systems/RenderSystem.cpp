@@ -4,9 +4,9 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#include "../../includes/game/systems/RenderSystem.hpp"
-#include "../../includes/game/components/PositionComponent.hpp"
-#include "../../includes/game/components/PieceComponent.hpp"
+#include "../../../includes/game/systems/RenderSystem.hpp"
+#include "../../../includes/game/components/PositionComponent.hpp"
+#include "../../../includes/game/components/PieceComponent.hpp"
 
 RenderSystem::RenderSystem(ui::NcursesRenderer& renderer)
     : m_renderer(renderer) {}

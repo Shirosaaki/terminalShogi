@@ -4,7 +4,7 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#include "../../includes/game/systems/RulesSystem.hpp"
+#include "../../../includes/game/systems/RulesSystem.hpp"
 
 RulesSystem::RulesSystem(core::GameState& state)
     : m_state(state) {}

@@ -5,16 +5,11 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#ifndef SHOGIPIECES_HPP_
-#define SHOGIPIECES_HPP_
+#pragma once
+#include "../../core/ecs/Registry.hpp"
 
-class ShogiPieces {
-    public:
-        ShogiPieces();
-        ~ShogiPieces();
+namespace shogi {
 
-    protected:
-    private:
-};
+void createPieces(ecs::Registry& registry);
 
-#endif /* !SHOGIPIECES_HPP_ */
+}

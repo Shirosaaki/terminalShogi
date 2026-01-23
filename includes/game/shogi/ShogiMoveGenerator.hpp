@@ -5,16 +5,10 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#ifndef SHOGIMOVEGENERATOR_HPP_
-#define SHOGIMOVEGENERATOR_HPP_
+#pragma once
+#include "../../core/patterns/MoveGeneratorStrategy.hpp"
 
-class ShogiMoveGenerator {
-    public:
-        ShogiMoveGenerator();
-        ~ShogiMoveGenerator();
-
-    protected:
-    private:
+class ShogiMoveGenerator : public core::MoveGeneratorStrategy {
+public:
+    std::vector<core::Move> generateMoves(ecs::Registry& registry) override;
 };
-
-#endif /* !SHOGIMOVEGENERATOR_HPP_ */

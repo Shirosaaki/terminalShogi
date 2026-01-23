@@ -5,25 +5,18 @@
 ## make
 ##
 
-SRC	=	main.cpp		\
-		my_getnbr.cpp		\
-		game.cpp		\
-		send.cpp
-
-OBJ	=	$(SRC:.cpp=.o)
-
-NAME	=	shogi
-
-all:	$(OBJ)
-	gcc -o $(NAME) $(OBJ) -lncurses
+all:
+	mkdir -p build
+	cmake -S . -B build
+	cmake --build build
 
 clean:
-	rm -rf $(OBJ)
+	rm -rf build
 
 fclean:	clean
-	rm -rf $(NAME)
+	rm -rf terminalShogi
 
 re:	fclean all
 
 run:	re
-	./$(NAME)
+	./terminalShogi

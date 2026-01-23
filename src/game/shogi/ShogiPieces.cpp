@@ -4,12 +4,14 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#include "../../includes/game/shogi/ShogiPieces.hpp"
+#include "../../../includes/game/shogi/ShogiPieces.hpp"
+#include "../../../includes/game/components/PieceComponent.hpp"
+#include "../../../includes/game/components/PositionComponent.hpp"
 
-ShogiPieces::ShogiPieces()
-{
+namespace shogi {
+
+void createPieces(ecs::Registry& registry) {
+    // TODO: créer les pièces du shogi
 }
 
-ShogiPieces::~ShogiPieces()
-{
 }

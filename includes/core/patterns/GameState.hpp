@@ -6,7 +6,7 @@
  *=============================================**/
 
 #pragma once
-#include "core/ecs/Registry.hpp"
+#include "../../core/ecs/Registry.hpp"
 
 namespace core {
 

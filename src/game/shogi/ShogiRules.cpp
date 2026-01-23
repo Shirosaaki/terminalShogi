@@ -4,12 +4,12 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#include "../../includes/game/shogi/ShogiRules.hpp"
+#include "../../../includes/game/shogi/ShogiRules.hpp"
 
-ShogiRules::ShogiRules()
-{
+void ShogiRules::update(ecs::Registry&) {
+    // TODO: vérifier mat, etc.
 }
 
-ShogiRules::~ShogiRules()
-{
+bool ShogiRules::isGameOver() const {
+    return m_over;
 }

@@ -5,16 +5,13 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#ifndef SHOGIFACTORY_HPP_
-#define SHOGIFACTORY_HPP_
+#pragma once
 
-class ShogiFactory {
-    public:
-        ShogiFactory();
-        ~ShogiFactory();
+#include "../../core/patterns/GameFactory.hpp"
 
-    protected:
-    private:
+class ShogiFactory : public core::GameFactory {
+public:
+    void createEntities(ecs::Registry& registry) override;
+    std::vector<std::unique_ptr<ecs::System>> createSystems() override;
+    std::unique_ptr<core::MoveGeneratorStrategy> createMoveGenerator() override;
 };
-
-#endif /* !SHOGIFACTORY_HPP_ */

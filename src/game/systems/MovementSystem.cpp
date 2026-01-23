@@ -4,7 +4,7 @@
  *  Date: 2026-01-23
  *=============================================**/
 
-#include "../../includes/game/systems/MovementSystem.hpp"
+#include "../../../includes/game/systems/MovementSystem.hpp"
 
 MovementSystem::MovementSystem(core::MoveGeneratorStrategy& strategy)
     : m_strategy(strategy) {}

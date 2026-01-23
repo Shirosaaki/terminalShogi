@@ -16,52 +16,23 @@
     #include <fcntl.h>
     #include <unistd.h>
     #include <ncurses.h>
+    #include <string>
+    #include <iostream>
+    #include <vector>
+    #include <map>
+    #include <stdexcept>
+    // include all other headers here
+    #include "core/utils/SignalHandler.hpp"
+    #include "core/ecs/Registry.hpp"
 
-typedef struct pids_s {
-    int first_pid;
-    int second_pid;
-} pids_t;
+    #include "ui/InputSystem.hpp"
+    #include "ui/NcursesRenderer.hpp"
 
-
-class Piece {
-    int color;
-    int *moves;
-
-    public:
-        int x;
-        int y;
-        char piece;
-        void setup(char pi, int col, int x_t, int y_t) {
-            piece = pi;
-            color = col;
-            x = x_t;
-            y = y_t;
-        };
-        void set_move(int *posibility) {
-            moves = posibility;
-        };
-        int can_move(int mx, int my) {
-            for (int i = 0; moves[i] != -50 && moves[i] != 50; i += 2)
-                if (mx == x + moves[i] && my == y + moves[i + 1])
-                    return 1;
-            return 0;
-        };
-        void print(void) {
-            attron(COLOR_PAIR(color));
-            printw("%c", piece);
-            attroff(COLOR_PAIR(color));
-        };
-};
-
-int my_isnum(char const *str);
-int my_getnbr(char const *str);
-int run(pids_t pids);
-int *char_to_bin(char c);
-void send(int *bin, int pid);
-int bin_to_dec(int *bin);
-int piece_ir(int x, int y, Piece *ourPieces);
-void print_attack(char *pos, Piece *ourPieces);
-void print_dep(char *pos, Piece *ourPieces, Piece *ennemyPieces);
-Piece *init_player(int color, int direction);
+    #include "game/shogi/ShogiFactory.hpp"
+    #include "game/systems/InputSystem.hpp"
+    #include "game/systems/RenderSystem.hpp"
+    #include "game/systems/MovementSystem.hpp"
+    #include "game/systems/RulesSystem.hpp"
+    #include "game/systems/CleanupSystem.hpp"
 
 #endif /* !MY_H_ */
