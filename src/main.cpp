@@ -8,10 +8,12 @@
 #include "../includes/my.h"
 #include <iostream>
 #include <string>
+#include <ncurses.h>
 #include <unistd.h>     // getpid()
 #include <optional>
 #include <thread>
 #include <chrono>
+#include "../includes/game/components/GameStatusComponent.hpp"
 
 int main(int argc, char** argv) {
     pid_t myPid = getpid();
@@ -100,6 +102,35 @@ int main(int argc, char** argv) {
     while (running) {
         for (auto& sys : systems) {
             sys->update(registry, 0.016f);
+        }
+
+        // Check game status and notify opponent if needed
+        for (auto e : registry.aliveEntities()) {
+            auto gs = registry.getComponent<GameStatusComponent>(e);
+            if (gs && gs->gameOver) {
+                int winner = gs->winner;
+                // Ensure ncurses is ended so stdout is visible
+                endwin();
+                std::cout << "Game over. Winner: Player " << (winner + 1) << "\n";
+
+                // notify opponent with winner info if there is an opponent
+                if (opponentPidValue != 0) {
+                    std::string path = "/tmp/terminalShogi_exit_" + std::to_string(getpid());
+                    int fd = ::open(path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0600);
+                    if (fd >= 0) {
+                        std::string payload = "win " + std::to_string(winner) + "\n";
+                        ::write(fd, payload.c_str(), payload.size());
+                        ::fsync(fd);
+                        ::close(fd);
+                    }
+                    kill(opponentPidValue, SIGUSR1);
+                    kill(opponentPidValue, SIGINT);
+                }
+
+                // exit local
+                running = false;
+                break;
+            }
         }
     }
 

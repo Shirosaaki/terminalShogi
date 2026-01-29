@@ -74,6 +74,19 @@ void InputSystem::applyMove(ecs::Registry& reg, const core::Move& m, bool record
                             gs->winner = currentPlayer;
                         }
                     }
+                    // notify opponent to exit as well
+                    if (m_opponentPid != 0) {
+                        std::string path = "/tmp/terminalShogi_exit_" + std::to_string(getpid());
+                        int fd = ::open(path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0600);
+                        if (fd >= 0) {
+                            std::string payload = "win " + std::to_string(currentPlayer) + "\n";
+                            ::write(fd, payload.c_str(), payload.size());
+                            ::fsync(fd);
+                            ::close(fd);
+                        }
+                        kill(m_opponentPid, SIGUSR1);
+                        kill(m_opponentPid, SIGINT);
+                    }
                 }
             }
         }
@@ -447,11 +460,30 @@ void InputSystem::handleOpponentTurn(ecs::Registry& reg) {
             // First check for an exit notification
             std::string exitPath = "/tmp/terminalShogi_exit_" + std::to_string(sender);
             if (access(exitPath.c_str(), F_OK) == 0) {
-            // Mark game over locally
-            for (auto e : reg.aliveEntities()) {
-                auto gs = reg.getComponent<GameStatusComponent>(e);
-                if (gs) { gs->gameOver = true; break; }
+            // Read exit file to see if it's a plain exit or a win notification
+            std::ifstream exitIn(exitPath);
+            std::string token;
+            if (exitIn >> token) {
+                if (token == "win") {
+                    int winner = -1;
+                    if (exitIn >> winner) {
+                        for (auto e : reg.aliveEntities()) {
+                            auto gs = reg.getComponent<GameStatusComponent>(e);
+                            if (gs) { gs->gameOver = true; gs->winner = winner; break; }
+                        }
+                        // display winner
+                        m_renderer.drawText(0, 21, std::string("Player ") + std::to_string(winner+1) + " wins!" + std::string(20,' '));
+                        m_renderer.refreshScreen();
+                    }
+                } else {
+                    // plain exit
+                    for (auto e : reg.aliveEntities()) {
+                        auto gs = reg.getComponent<GameStatusComponent>(e);
+                        if (gs) { gs->gameOver = true; break; }
+                    }
+                }
             }
+            exitIn.close();
             // remove exit file
             std::remove(exitPath.c_str());
             // request local shutdown via SIGINT to trigger main running=false
