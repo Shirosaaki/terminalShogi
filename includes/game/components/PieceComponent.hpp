@@ -13,4 +13,5 @@ struct PieceComponent : public ecs::IComponent {
     std::string name;
     char symbol = '?';
     int owner = 0; // joueur 0 ou 1
+    bool promoted = false;
 };

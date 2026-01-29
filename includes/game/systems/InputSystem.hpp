@@ -38,7 +38,8 @@ private:
 
     ecs::Entity pieceAt(ecs::Registry& reg, int x, int y);
     // recordCapture: when true, the captured piece is added to the local captured list
-    void applyMove(ecs::Registry& reg, const core::Move& m, bool recordCapture = true);
+    // promptPromotion: when true, asks the local player whether to promote when applicable
+    void applyMove(ecs::Registry& reg, const core::Move& m, bool recordCapture = true, bool promptPromotion = false);
     void handleMyTurn(ecs::Registry& reg);
     void handleOpponentTurn(ecs::Registry& reg);
 };

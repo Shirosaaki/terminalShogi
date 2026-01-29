@@ -23,6 +23,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include "../../../includes/core/utils/SignalHandler.hpp"
+#include "../../../includes/game/shogi/ShogiLogic.hpp"
 
 InputSystem::InputSystem(core::MoveGeneratorStrategy& moveGen,
                          ui::NcursesRenderer& renderer,
@@ -41,7 +42,7 @@ ecs::Entity InputSystem::pieceAt(ecs::Registry& reg, int x, int y) {
     return ecs::INVALID_ENTITY;
 }
 
-void InputSystem::applyMove(ecs::Registry& reg, const core::Move& m, bool recordCapture) {
+void InputSystem::applyMove(ecs::Registry& reg, const core::Move& m, bool recordCapture, bool promptPromotion) {
     auto piece = pieceAt(reg, m.fromX, m.fromY);
     if (piece == ecs::INVALID_ENTITY) return;
 
@@ -94,6 +95,25 @@ void InputSystem::applyMove(ecs::Registry& reg, const core::Move& m, bool record
 
         if (bc->x == m.toX && bc->y == m.toY)
             bc->piece = piece;
+    }
+
+    // handle promotion (prompt only for local interactive moves)
+    if (promptPromotion) {
+        shogi::handle_promotion(reg, piece, m.toY, &m_input, &m_renderer);
+    } else {
+        shogi::handle_promotion(reg, piece, m.toY, nullptr, nullptr);
+    }
+
+    // after move, detect checkmate against opponent
+    int opponent = 1 - (reg.getComponent<PieceComponent>(piece) ? reg.getComponent<PieceComponent>(piece)->owner : 0);
+    if (shogi::is_checkmate(reg, opponent, m_moveGen, m_captured)) {
+        for (auto e : reg.aliveEntities()) {
+            auto gs = reg.getComponent<GameStatusComponent>(e);
+            if (gs) {
+                gs->gameOver = true;
+                gs->winner = reg.getComponent<PieceComponent>(piece)->owner;
+            }
+        }
     }
 }
 
@@ -239,6 +259,16 @@ void InputSystem::handleMyTurn(ecs::Registry& reg) {
         if (pieceAt(reg, tx, ty) != ecs::INVALID_ENTITY) {
             m_renderer.drawText(0, 22, "Target not empty.");
             m_renderer.refreshScreen();
+            // restore captured piece to hand
+            caps.insert(caps.begin() + sel, chosenSymbol);
+            return;
+        }
+
+        // validate drop rules (nifu, invalid drops, uchifuzume)
+        if (!shogi::validate_drop(reg, chosenSymbol, m_localPlayer, tx, ty, m_moveGen, m_captured)) {
+            m_renderer.drawText(0, 22, "Illegal drop (nifu/uchifuzume/invalid). ");
+            m_renderer.refreshScreen();
+            caps.insert(caps.begin() + sel, chosenSymbol);
             return;
         }
 
@@ -278,6 +308,17 @@ void InputSystem::handleMyTurn(ecs::Registry& reg) {
         for (auto e2 : reg.aliveEntities()) {
             auto t = reg.getComponent<TurnComponent>(e2);
             if (t) { t->currentPlayer = 1 - t->currentPlayer; break; }
+        }
+
+        // Check if this drop immediately checkmates opponent
+        if (shogi::is_checkmate(reg, 1 - m_localPlayer, m_moveGen, m_captured)) {
+            for (auto e : reg.aliveEntities()) {
+                auto gs = reg.getComponent<GameStatusComponent>(e);
+                if (gs) {
+                    gs->gameOver = true;
+                    gs->winner = m_localPlayer;
+                }
+            }
         }
 
         // Send drop to opponent
@@ -347,7 +388,7 @@ void InputSystem::handleMyTurn(ecs::Registry& reg) {
     bool moved = false;
     for (const auto& m : pieceMoves) {
         if (m.toX == tx && m.toY == ty) {
-            applyMove(reg, m);
+            applyMove(reg, m, true, true);
 
             // Switch turn
             for (auto e : reg.aliveEntities()) {
@@ -416,7 +457,7 @@ void InputSystem::handleOpponentTurn(ecs::Registry& reg) {
                 if (type == "M") {
                     core::Move m;
                     if (in >> m.fromX >> m.fromY >> m.toX >> m.toY) {
-                            applyMove(reg, m, false);
+                            applyMove(reg, m, false, false);
                         // Switch turn to local
                         for (auto e : reg.aliveEntities()) {
                             auto t = reg.getComponent<TurnComponent>(e);

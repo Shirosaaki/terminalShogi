@@ -100,34 +100,68 @@ std::vector<core::Move> ShogiMoveGenerator::generateMoves(ecs::Registry& registr
             addStepMoves(moves, registry, x, y, currentPlayer,
                          {{0,1},{1,1},{1,0},{0,-1},{-1,0},{-1,1}});
         } else if (pc->name == "Silver") {
-            addStepMoves(moves, registry, x, y, currentPlayer,
-                         {{0,1},{1,1},{-1,1},{1,-1},{-1,-1}});
+            if (pc->promoted) {
+                // promoted silver moves like Gold
+                addStepMoves(moves, registry, x, y, currentPlayer,
+                             {{0,1},{1,1},{1,0},{0,-1},{-1,0},{-1,1}});
+            } else {
+                addStepMoves(moves, registry, x, y, currentPlayer,
+                             {{0,1},{1,1},{-1,1},{1,-1},{-1,-1}});
+            }
         } else if (pc->name == "Pawn") {
-            addStepMoves(moves, registry, x, y, currentPlayer,
-                         {{0,1}});
+            if (pc->promoted) {
+                // promoted pawn moves like Gold
+                addStepMoves(moves, registry, x, y, currentPlayer,
+                             {{0,1},{1,1},{1,0},{0,-1},{-1,0},{-1,1}});
+            } else {
+                addStepMoves(moves, registry, x, y, currentPlayer,
+                             {{0,1}});
+            }
         } else if (pc->name == "Knight") {
-            int dy = 2;
-            int dxs[2] = {-1, 1};
-            for (int dx : dxs) {
-                int nx = x + dx;
-                int ny = y + (currentPlayer == 0 ? -dy : dy);
-                if (!inBounds(nx, ny)) continue;
-                auto target = pieceAt(registry, nx, ny);
-                if (target != ecs::INVALID_ENTITY) {
-                    auto tpc = registry.getComponent<PieceComponent>(target);
-                    if (tpc && tpc->owner == currentPlayer) continue;
+            if (pc->promoted) {
+                // promoted knight moves like Gold
+                addStepMoves(moves, registry, x, y, currentPlayer,
+                             {{0,1},{1,1},{1,0},{0,-1},{-1,0},{-1,1}});
+            } else {
+                int dy = 2;
+                int dxs[2] = {-1, 1};
+                for (int dx : dxs) {
+                    int nx = x + dx;
+                    int ny = y + (currentPlayer == 0 ? -dy : dy);
+                    if (!inBounds(nx, ny)) continue;
+                    auto target = pieceAt(registry, nx, ny);
+                    if (target != ecs::INVALID_ENTITY) {
+                        auto tpc = registry.getComponent<PieceComponent>(target);
+                        if (tpc && tpc->owner == currentPlayer) continue;
+                    }
+                    moves.push_back(core::Move{x, y, nx, ny, false});
                 }
-                moves.push_back(core::Move{x, y, nx, ny, false});
             }
         } else if (pc->name == "Lance") {
-            addSlidingMoves(moves, registry, x, y, currentPlayer,
-                            {{0,1}});
+            if (pc->promoted) {
+                // promoted lance moves like Gold
+                addStepMoves(moves, registry, x, y, currentPlayer,
+                             {{0,1},{1,1},{1,0},{0,-1},{-1,0},{-1,1}});
+            } else {
+                addSlidingMoves(moves, registry, x, y, currentPlayer,
+                                {{0,1}});
+            }
         } else if (pc->name == "Bishop") {
             addSlidingMoves(moves, registry, x, y, currentPlayer,
                             {{1,1},{1,-1},{-1,1},{-1,-1}});
+            if (pc->promoted) {
+                // promoted bishop gets king-like steps in addition to diagonals
+                addStepMoves(moves, registry, x, y, currentPlayer,
+                             {{0,1},{1,0},{0,-1},{-1,0}});
+            }
         } else if (pc->name == "Rook") {
             addSlidingMoves(moves, registry, x, y, currentPlayer,
                             {{0,1},{1,0},{0,-1},{-1,0}});
+            if (pc->promoted) {
+                // promoted rook gets king-like diagonal steps
+                addStepMoves(moves, registry, x, y, currentPlayer,
+                             {{1,1},{1,-1},{-1,1},{-1,-1}});
+            }
         }
     }
 
