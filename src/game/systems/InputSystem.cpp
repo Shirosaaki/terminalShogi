@@ -65,6 +65,16 @@ void InputSystem::applyMove(ecs::Registry& reg, const core::Move& m, bool record
                 else
                     capturedSymbol = std::tolower(capturedSymbol);
                 m_captured[currentPlayer].push_back(capturedSymbol);
+                // If captured piece is a King, that means currentPlayer captured opponent's king -> win
+                if (pc->name == "King") {
+                    for (auto e : reg.aliveEntities()) {
+                        auto gs = reg.getComponent<GameStatusComponent>(e);
+                        if (gs) {
+                            gs->gameOver = true;
+                            gs->winner = currentPlayer;
+                        }
+                    }
+                }
             }
         }
 
